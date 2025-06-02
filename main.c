@@ -50,7 +50,7 @@ size_t len;
     do {                                                                       \
         len = strlen(str);                                                     \
         memory_create();                                                       \
-        lexer(str, len);                                                       \
+        get_input(str, len);                                                   \
         memory_destroy();                                                      \
     } while (0)
 

@@ -74,7 +74,7 @@ void memory_create(void);
 void memory_destroy(void);
 void memory_dump(size_t size);
 uint8_t invert_bit(uint8_t bit);
-void lexer(char *str, size_t size);
+void get_input(char *str, size_t size);
 void execute(void);
 
 #ifdef __cplusplus

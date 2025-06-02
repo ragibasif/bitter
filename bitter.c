@@ -49,7 +49,7 @@ uint8_t invert_bit(uint8_t bit) {
     return ZERO;
 }
 
-void lexer(char *str, size_t size) {
+void get_input(char *str, size_t size) {
     size_t i;
     for (i = 0; i < size; i++) {
         input->buffer[i] = str[i];
