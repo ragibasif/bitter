@@ -1,2 +1,4 @@
 # bitter
-Like Brainfuck - only much, much, worse.
+
+An interpreter for the [Bitter](https://esolangs.org/wiki/Bitter) esoteric
+programming language written in C.
