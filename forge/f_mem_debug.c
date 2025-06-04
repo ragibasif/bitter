@@ -4,7 +4,7 @@
 #include <string.h>
 #define F_MEMORY_INTERNAL
 #define F_NO_MEMORY_DEBUG
-// #define F_MEMORY_PRINT
+#define F_MEMORY_PRINT
 #include "forge.h"
 
 #define F_MEMORY_OVER_ALLOC 256

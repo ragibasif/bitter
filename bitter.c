@@ -12,111 +12,87 @@
  *
  */
 
+// Bitter commands:
+
+// >
+// increment data pointer and invert bit
+//
+// <
+// decrement data pointer and invert bit
+//
+// (
+// if [p] == 1, proceed to next command, otherwise advance to command after
+// matching ')'
+//
+// )
+// go back to matching (
+//
+// !
+// interpreter command: dump memory from 0 to highest value of chunkta pointer
+//
+// #
+// interpreter command: pause program and dump memory
+
 #include "bitter.h"
 
-Tape *data;
-Tape *input;
-
-void memory_create(void) {
-    data = malloc(sizeof(*data));
-    input = malloc(sizeof(*input));
-
-    data->size = MAX_BUFFER;
-    input->size = MAX_BUFFER;
-
-    data->buffer = malloc(data->size * sizeof(*data->buffer));
-    input->buffer = malloc(input->size * sizeof(*input->buffer));
-
-    data->pointer = 0;
-    input->pointer = 0;
-
-    data->highest_pointer = data->pointer;
-
-    memset(data->buffer, ZERO, data->size);
-    memset(input->buffer, ZERO, input->size);
-}
-
-void memory_destroy(void) {
-    free(data->buffer);
-    free(input->buffer);
-    free(data);
-    free(input);
-}
-
-uint8_t invert_bit(uint8_t bit) {
-    if (bit == ZERO)
-        return ONE;
-    return ZERO;
-}
-
-void get_input(char *str, size_t size) {
-    size_t i;
-    for (i = 0; i < size; i++) {
-        input->buffer[i] = str[i];
+void *reallocate(void *pointer, size_t oldSize, size_t newSize) {
+    if (newSize == 0) {
+        free(pointer);
+        return NULL;
     }
-    execute();
-    memory_dump(MAX_BUFFER);
-}
 
-bool check(void) {
-    if (input->pointer >= 0 && input->pointer < MAX_BUFFER &&
-        data->pointer >= 0 && data->pointer < MAX_BUFFER) {
-        return true;
+    void *result = realloc(pointer, newSize);
+    if (result == NULL) {
+        exit(1);
     }
-    return false;
+    return result;
 }
 
-bool increment(void) {
-    data->pointer++;
-    data->highest_pointer = MAX(size_t, data->highest_pointer, data->pointer);
-    if (check()) {
-        uint8_t temp = data->buffer[data->pointer];
-        data->buffer[data->pointer] = invert_bit(temp);
-        unsigned char a = temp;
-        input->pointer++;
-        return true;
+void chunk_create(Chunk *chunk) {
+    chunk->size = 0;
+    chunk->capacity = 0;
+    chunk->array = NULL;
+}
+
+void chunk_write(Chunk *chunk, uint8_t byte) {
+    if (chunk->capacity < chunk->size + 1) {
+        int oldCapacity = chunk->capacity;
+        chunk->capacity = GROW_CAPACITY(oldCapacity);
+        chunk->array =
+            GROW_ARRAY(uint8_t, chunk->array, oldCapacity, chunk->capacity);
     }
-    return false;
+
+    chunk->array[chunk->size] = byte;
+    chunk->size++;
 }
 
-bool decrement(void) {
-    data->highest_pointer = MAX(size_t, data->highest_pointer, data->pointer);
-    data->pointer--;
-    if (check()) {
-        uint8_t temp = data->buffer[data->pointer];
-        data->buffer[data->pointer] = invert_bit(temp);
-        unsigned char a = temp;
-        input->pointer++;
-        return true;
-    }
-    return false;
+void chunk_destroy(Chunk *chunk) {
+    FREE_ARRAY(uint8_t, chunk->array, chunk->capacity);
+    chunk_create(chunk); // zero out the fields to leave the chunk in a well
+                         // defined empty state
 }
 
-void execute(void) {
-    while (input->buffer[input->pointer] && check()) {
-        if (input->buffer[input->pointer] == TOKEN_INC) {
-            if (!increment()) {
-                return;
-            }
-        } else if (input->buffer[input->pointer] == TOKEN_DEC) {
-            if (!decrement()) {
-                return;
-            }
-        } else if (input->buffer[input->pointer] == TOKEN_DUMP_TO_DATA_PTR) {
-            memory_dump(data->highest_pointer + 1);
-            input->pointer++;
-        } else if (input->buffer[input->pointer] ==
-                   TOKEN_PAUSE_AND_DUMP_MEM_FULL) {
-            memory_dump(MAX_BUFFER);
-            input->pointer++;
-        }
+void disassemble_chunk(Chunk *chunk, const char *name) {
+    dbg(name);
+    for (int offset = 0; offset < chunk->size;) {
+        offset = disassemble_instruction(chunk, offset);
     }
 }
 
-void memory_dump(size_t size) {
-    size_t i;
-    for (i = 0; i < size; i++) {
-        printf("%u ", data->buffer[i]);
+static int simple_instruction(const char *name, int offset) {
+    dbg(name);
+    return offset + 1;
+}
+
+int disassemble_instruction(Chunk *chunk, int offset) {
+    dbg(offset);
+
+    uint8_t instruction = chunk->array[offset];
+    switch (instruction) {
+    case OP_RETURN:
+        return simple_instruction("OP_RETURN", offset);
+    default:
+        printf("Unknown opcode %d\n", instruction);
+        return offset + 1;
     }
-    putchar('\n');
 }

@@ -8,6 +8,27 @@
  * Version 1.0.0
  */
 
+// Bitter commands:
+
+// >
+// increment data pointer and invert bit
+//
+// <
+// decrement data pointer and invert bit
+//
+// (
+// if [p] == 1, proceed to next command, otherwise advance to command after
+// matching ')'
+//
+// )
+// go back to matching (
+//
+// !
+// interpreter command: dump memory from 0 to highest value of data pointer
+//
+// #
+// interpreter command: pause program and dump memory
+
 #include "bitter.h"
 
 void test_case1(void);
@@ -24,9 +45,15 @@ int main(int argc, char **argv) {
     (void)argc;
     (void)argv;
 
-    test_case1();
-    test_case2();
-    test_case3();
+    Chunk chunk;
+    chunk_create(&chunk);
+    chunk_write(&chunk, OP_RETURN);
+    disassemble_chunk(&chunk, "test chunk");
+    chunk_destroy(&chunk);
+
+    // test_case1();
+    // test_case2();
+    // test_case3();
     // test_case4();
     // test_case5();
     // test_case6();
@@ -39,44 +66,14 @@ int main(int argc, char **argv) {
     f_debug_mem_print(0);
     f_debug_mem_reset();
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
-char *str;
-char *expected;
-size_t len;
+void test_case1(void) {}
 
-#define RUN                                                                    \
-    do {                                                                       \
-        len = strlen(str);                                                     \
-        memory_create();                                                       \
-        get_input(str, len);                                                   \
-        memory_destroy();                                                      \
-    } while (0)
+void test_case2(void) {}
 
-void test_case1(void) {
-    str = ">>!#";
-    expected = "[0,1,1]";
-    dbg(str);
-    dbg(expected);
-    RUN;
-}
-
-void test_case2(void) {
-    str = ">><<!#";
-    expected = "[1,0,1]";
-    dbg(str);
-    dbg(expected);
-    RUN;
-}
-
-void test_case3(void) {
-    str = ">#<!";
-    expected = "[0,1],[1,1]";
-    dbg(str);
-    dbg(expected);
-    RUN;
-}
+void test_case3(void) {}
 
 void test_case4(void) {}
 
