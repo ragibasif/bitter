@@ -85,27 +85,81 @@ extern "C" {
 
 void *reallocate(void *pointer, size_t oldSize, size_t newSize);
 
-// #include "chunk.h"
+// #include "value.h"
 
-typedef enum {
-    // WARN: return from current function  (delete later)
-    OP_RETURN,
-} OpCode;
+// data
 
+// can either be 0 or 1
+typedef uint8_t Bit;
+
+// aka Value
 typedef struct {
-    uint8_t *array;
+    Bit *bits;
     int size;
     int capacity;
-} Chunk;
+} BitArray;
 
-void chunk_create(Chunk *chunk);
-void chunk_write(Chunk *chunk, uint8_t byte);
-void chunk_destroy(Chunk *chunk);
+void bit_array_create(BitArray *array);
+void bit_array_write(BitArray *array, Bit value);
+void bit_array_destroy(BitArray *array);
+
+// #include "chunk.h"
+
+// input instructions
+
+typedef enum {
+    OP_RETURN,
+    OP_INC_INVERT,    // > - move data ptr to the right and invert bit
+    OP_DEC_INVERT,    // < - move data ptr to the left and invert bit
+    OP_START_LOOP,    // ( - if [p] == 1 then next command, else matching ) + 1
+    OP_END_LOOP,      // ) - back to matching (
+    OP_USED_MEM_DUMP, // ! - dump mem from 0 to highest data ptr
+    OP_FULL_MEM_DUMP, // # - pause program and dump full memory
+} OpCode;
+
+// aka Chunk
+typedef struct {
+    uint8_t *code;
+    int size;
+    int capacity;
+} Commands;
+
+void commands_create(Commands *command);
+void commands_write(Commands *command, uint8_t byte);
+void commands_destroy(Commands *command);
+
+#define STACK_MAX 256
+
+typedef struct {
+    Commands *commands;
+    uint8_t *ip;
+    Bit stack[STACK_MAX];
+    Bit *stack_top;
+} VM;
+
+typedef enum {
+    INTERPRET_OK,
+    INTERPRET_COMPILE_ERROR,
+    INTERPRET_RUNTIME_ERROR,
+} InterpretResult;
+
+void vm_create();
+void vm_destroy();
+InterpretResult interpret(const char *source);
+// void push(Bit bit);
+// Bit pop();
+
+// #include "compiler.h"
+void compile(const char *source);
+
+// #include "scanner.h"
+
+void scanner_create(const char *source);
 
 // #include "debug.h"
 
-void disassemble_chunk(Chunk *chunk, const char *name);
-int disassemble_instruction(Chunk *chunk, int offset);
+void disassemble_commands(Commands *commands, const char *name);
+int disassemble_instruction(Commands *commands, int offset);
 
 #ifdef __cplusplus
 }

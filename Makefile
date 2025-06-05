@@ -9,7 +9,7 @@ DBG = lldb
 
 LDFLAGS := -v -lc
 
-EXECUTABLE := exe
+EXECUTABLE := bitter
 
 
 SRCS := $(wildcard *.c)
