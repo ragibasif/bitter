@@ -12,24 +12,26 @@
 
 // >
 // increment data pointer and invert bit
-//
+
 // <
 // decrement data pointer and invert bit
-//
+
 // (
 // if [p] == 1, proceed to next command, otherwise advance to command after
 // matching ')'
-//
+
 // )
 // go back to matching (
-//
+
 // !
 // interpreter command: dump memory from 0 to highest value of data pointer
-//
+
 // #
 // interpreter command: pause program and dump memory
 
 #include "bitter.h"
+
+static void run(char *source) {}
 
 static void repl() {
     char line[1024];
@@ -41,7 +43,7 @@ static void repl() {
             break;
         }
 
-        interpret(line);
+        run(line);
     }
 }
 
@@ -49,23 +51,23 @@ static char *read_file(const char *path) {
     FILE *file = fopen(path, "rb");
     if (file == NULL) {
         fprintf(stderr, "Could not open file \"%s\".\n", path);
-        exit(74);
+        exit(1);
     }
 
-    fseek(file, 0L, SEEK_END);
-    size_t file_size = ftell(file);
-    rewind(file);
+    fseek(file, 0L, SEEK_END);      // go to the end of the file
+    size_t file_size = ftell(file); // size is far the end is from the start
+    rewind(file);                   // go back to the start
 
     char *buffer =
         malloc(file_size + 1); // remember to add extra +1 for the null byte
-    if (buffer == NULL) {
+    if (buffer == NULL) {      // memory allocation failed
         fprintf(stderr, "Not enough memory to read \"%s\".\n", path);
-        exit(74);
+        exit(1);
     }
     size_t bytes_read = fread(buffer, sizeof(char), file_size, file);
     if (bytes_read < file_size) {
         fprintf(stderr, "Could not read file \"%s\".\n", path);
-        exit(74);
+        exit(1);
     }
     buffer[bytes_read] = '\0';
 
@@ -75,31 +77,20 @@ static char *read_file(const char *path) {
 
 static void run_file(const char *path) {
     char *source = read_file(path);
-    InterpretResult result = interpret(source);
-    free(source);
-
-    if (result == INTERPRET_COMPILE_ERROR) {
-        exit(65);
-    }
-    if (result == INTERPRET_RUNTIME_ERROR) {
-        exit(70);
-    }
+    run(source);
+    free(source); // free the dynamically allocated buffer
 }
 
 int main(int argc, char **argv) {
-
-    vm_create();
 
     if (argc == 1) {
         repl();
     } else if (argc == 2) {
         run_file(argv[1]);
     } else {
-        fprintf(stderr, "Usage: %s [path]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [script]\n", argv[0]);
         exit(64);
     }
-
-    vm_destroy();
 
     /* MEMORY DEBUGGING - DO NOT TOUCH */
     f_debug_memory_init(NULL, NULL, NULL);
