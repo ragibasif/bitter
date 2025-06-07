@@ -69,22 +69,39 @@ extern "C" {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-enum TokenType {
-    INCREMENT_INVERT, // >
-    DECREMENT_INVERT, // <
-    START_LOOP,       // (
-    END_LOOP,         // )
-    DUMP_USED_MEMORY, // !
-    DUMP_FULL_MEMORY, // #
+#define MAX_BUFFER 10
+
+enum token_type {
+    GREATER,     // >
+    LESS,        // <
+    OPEN_PAREN,  // (
+    CLOSE_PAREN, // )
+    BANG,        // !
+    HASH,        // #
 };
 
-struct Token {
-    enum TokenType token_type;
-    char *token_literal;
+struct token {
+    enum token_type type;
+    char literal;
 };
 
-struct Lexer {};
-struct Interpreter {};
+void token_create(struct token *token, enum token_type type);
+
+struct lexer {
+    char *source;
+    struct token token_buffer[MAX_BUFFER];
+};
+
+void dump_used_memory(void);
+
+void dump_full_memory(void);
+
+void execute(struct lexer *lexer);
+
+void run(char *source);
+
+void find_close_paren(size_t instruction_pointer);
+void find_open_paren(size_t instruction_pointer);
 
 #ifdef __cplusplus
 }
