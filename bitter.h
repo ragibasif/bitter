@@ -63,9 +63,9 @@ extern "C" {
 #define F_MEMORY_DEBUG /* turns on the memory debugging system */
 #define F_MEMORY_PRINT /* turns on the memory printing system */
 #define F_EXIT_CRASH   /* turns on the crash on exit */
-#include "dbg-macro/dbg.h"
-#include "forge/forge.h"
-#include "munit/munit.h"
+#include "libs/dbg-macro/dbg.h"
+#include "libs/forge/forge.h"
+#include "libs/munit/munit.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
