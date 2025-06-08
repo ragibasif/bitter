@@ -6,6 +6,8 @@
  * SPDX-License-Identifier: MIT
  * Copyright (c) 2025 Ragib Asif
  * Version 1.0.0
+ *
+ * Bitter esoteric programming language interpreter in C.
  */
 
 // Bitter commands:
@@ -32,8 +34,7 @@
 #include "bitter.h"
 
 int main(int argc, char **argv) {
-    run(">>>>><<<");
-    dump_full_memory();
+    decode(">>[>]>!>><!<<!");
 
     /* MEMORY DEBUGGING - DO NOT TOUCH */
     f_debug_memory_init(NULL, NULL, NULL);

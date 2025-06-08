@@ -8,18 +8,36 @@
  * Copyright (c) 2025 Ragib Asif
  * Version 1.0.0
  *
- * implementation
- *
+ * Bitter esoteric programming language interpreter in C.
  */
 
 #include "bitter.h"
 
-#define MAX_BUFFER 10
+// TODO
+struct data *data_create(struct data *tape) {
+    size_t i;
+    tape = malloc(sizeof(*tape));
+    tape->buffer = malloc(MAX_BUFFER * sizeof(*tape->buffer));
+    tape->size = MAX_BUFFER;
+    tape->capacity = MAX_BUFFER;
+    tape->data_pointer = 0;
+    tape->data_pointer_max = 0;
 
-static void dbg_token(struct token *token) {
-    dbg(token);
-    dbg(token->type);
-    dbg(token->literal);
+    for (i = 0; i < tape->capacity; i++) {
+        tape->buffer[i] = 0;
+    }
+    return tape;
+}
+
+void data_destroy(struct data *tape) {
+    tape->size = 0;
+    tape->capacity = 0;
+    tape->data_pointer = 0;
+    tape->data_pointer_max = 0;
+    free(tape->buffer);
+    tape->buffer = NULL;
+    free(tape);
+    tape = NULL;
 }
 
 static void dbg_lexer(struct lexer *lexer) {
@@ -41,7 +59,6 @@ static void dbg_lexer(struct lexer *lexer) {
 ////////////////////////////////////////////////////////////////////////////////
 
 // FIX: turn this into a dynamic array
-static char data_buffer[MAX_BUFFER];
 static char invert_bit[2] = {1, 0};
 
 void token_create(struct token *token, enum token_type type) {
@@ -83,49 +100,63 @@ void token_create(struct token *token, enum token_type type) {
     // dbg_token(token);
 }
 
-void find_close_paren(size_t instruction_pointer) {}
-void find_open_paren(size_t instruction_pointer) {}
+void find_close_paren(struct lexer *lexer, size_t instruction_pointer) {
+    while (lexer->token_buffer[instruction_pointer].type != CLOSE_PAREN &&
+           instruction_pointer < MAX_BUFFER - 1) {
+        instruction_pointer++;
+    }
+}
+
+void find_open_paren(struct lexer *lexer, size_t instruction_pointer) {
+    while (lexer->token_buffer[instruction_pointer].type != OPEN_PAREN &&
+           instruction_pointer > 0) {
+        instruction_pointer--;
+    }
+}
 
 void execute(struct lexer *lexer) {
     size_t instruction_pointer;
-    size_t data_pointer;
     size_t open_paren_pointer;
     size_t close_paren_pointer;
     instruction_pointer = 0;
-    data_pointer = 0;
-    open_paren_pointer = 0;
-    close_paren_pointer = 0;
+    struct data *tape;
+    tape = data_create(tape);
     for (instruction_pointer = 0; instruction_pointer < MAX_BUFFER;
          instruction_pointer++) {
         switch (lexer->token_buffer[instruction_pointer].type) {
         case (GREATER): {
-            data_pointer++;
-            data_buffer[data_pointer] = invert_bit[data_buffer[data_pointer]];
+            tape->data_pointer++;
+            tape->data_pointer_max =
+                max(tape->data_pointer_max, tape->data_pointer);
+            tape->buffer[tape->data_pointer] =
+                invert_bit[tape->buffer[tape->data_pointer]];
             break;
         }
         case (LESS): {
-            data_pointer--;
-            data_buffer[data_pointer] = invert_bit[data_buffer[data_pointer]];
+            tape->data_pointer_max =
+                max(tape->data_pointer_max, tape->data_pointer);
+            tape->data_pointer--;
+            tape->buffer[tape->data_pointer] =
+                invert_bit[tape->buffer[tape->data_pointer]];
             break;
         }
         case (OPEN_PAREN): {
             open_paren_pointer = instruction_pointer;
-            if (!data_buffer[data_pointer]) {
-                instruction_pointer = close_paren_pointer + 1;
+            if (!tape->buffer[tape->data_pointer]) {
+                find_close_paren(lexer, instruction_pointer);
             }
             break;
         }
         case (CLOSE_PAREN): {
-            close_paren_pointer = instruction_pointer;
-            instruction_pointer = open_paren_pointer;
+            find_open_paren(lexer, instruction_pointer);
             break;
         }
         case (BANG): {
-            dump_used_memory();
+            dump_used_memory(tape);
             break;
         }
         case (HASH): {
-            dump_full_memory();
+            dump_full_memory(tape);
             break;
         }
         default: {
@@ -133,19 +164,33 @@ void execute(struct lexer *lexer) {
         }
         }
     }
+    data_destroy(tape);
 }
 
-void lexer_create(struct lexer *lexer, char *source) {}
-void lexer_destroy(struct lexer *lexer) {}
-
-void run(char *source) {
-    struct lexer *lexer;
-    size_t src_len = strlen(source);
+struct lexer *lexer_create(struct lexer *lexer, char *source) {
+    lexer->size = strlen(source);
     lexer = malloc(sizeof(*lexer));
-    lexer->source = malloc(1 + src_len);
-    memcpy(lexer->source, source, src_len);
-    lexer->source[src_len] = '\0';
+    lexer->source = malloc(1 + lexer->size);
+    memcpy(lexer->source, source, lexer->size);
+    lexer->source[lexer->size] = '\0';
+    lexer->token_buffer = malloc(lexer->size * sizeof(*lexer->token_buffer));
+    return lexer;
+}
 
+void lexer_destroy(struct lexer *lexer) {
+    free(lexer->source);
+    lexer->source = NULL;
+    free(lexer->token_buffer);
+    lexer->token_buffer = NULL;
+    free(lexer);
+    lexer = NULL;
+}
+
+void decode(char *source) {
+    size_t src_len;
+    struct lexer *lexer;
+    lexer = lexer_create(lexer, source);
+    src_len = strlen(lexer->source);
     char c;
     size_t i;
     i = 0;
@@ -187,26 +232,21 @@ void run(char *source) {
 
     execute(lexer);
 
-    // dbg_lexer(lexer);
-    free(lexer->source);
-    lexer->source = NULL;
-    free(lexer);
-    lexer = NULL;
+    lexer_destroy(lexer);
 }
 
-void dump_full_memory() {
+void dump_full_memory(struct data *tape) {
     size_t i;
     for (i = 0; i < MAX_BUFFER; i++) {
-        printf("%d ", data_buffer[i]);
+        printf("%u ", tape->buffer[i]);
     }
     putchar('\n');
 }
 
-// FIX: track the highest that the data pointer goes and dump memory upto there
-void dump_used_memory() {
+void dump_used_memory(struct data *tape) {
     size_t i;
-    for (i = 0; i < MAX_BUFFER; i++) {
-        printf("%d ", data_buffer[i]);
+    for (i = 0; i < tape->data_pointer_max; i++) {
+        printf("%u ", tape->buffer[i]);
     }
     putchar('\n');
 }

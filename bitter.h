@@ -8,6 +8,7 @@
  * Copyright (c) 2025 Ragib Asif
  * Version 1.0.0
  *
+ * Bitter esoteric programming language interpreter in C.
  * https://esolangs.org/wiki/Bitter
  *
  */
@@ -69,7 +70,15 @@ extern "C" {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define MAX_BUFFER 10
+#define max(a, b)                                                              \
+    ({                                                                         \
+        __typeof__(a) _a = (a);                                                \
+        __typeof__(b) _b = (b);                                                \
+        _a > _b ? _a : _b;                                                     \
+    })
+
+// FIX: use dynamic memory
+#define MAX_BUFFER 2048
 
 enum token_type {
     GREATER,     // >
@@ -89,19 +98,30 @@ void token_create(struct token *token, enum token_type type);
 
 struct lexer {
     char *source;
-    struct token token_buffer[MAX_BUFFER];
+    int size;
+    // FIX: rewrite this to use dynamic memory
+    struct token *token_buffer; //[MAX_BUFFER];
 };
 
-void dump_used_memory(void);
+struct data {
+    unsigned char *buffer;
+    int size;
+    int capacity;
+    int data_pointer;
+    int data_pointer_max;
+};
 
-void dump_full_memory(void);
+void dump_used_memory(struct data *tape);
+
+void dump_full_memory(struct data *tape);
 
 void execute(struct lexer *lexer);
 
-void run(char *source);
+void decode(char *source);
 
-void find_close_paren(size_t instruction_pointer);
-void find_open_paren(size_t instruction_pointer);
+void find_close_paren(struct lexer *lexer, size_t instruction_pointer);
+
+void find_open_paren(struct lexer *lexer, size_t instruction_pointer);
 
 #ifdef __cplusplus
 }
