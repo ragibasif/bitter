@@ -22,6 +22,10 @@ void vm_create() {
     vm.lexer = lexer_create(vm.lexer);
     vm.data_pointer = 0;
     vm.instruction_pointer = 0;
+    // vm.lexer->buf_size = 1;
+    // struct token *token;
+    // token = token_create(token, GREATER);
+    // vm.lexer->token_buffer[0] = token;
 }
 
 void vm_destroy() {
@@ -54,14 +58,10 @@ void data_destroy(struct data *data) {
 struct lexer *lexer_create(struct lexer *lexer) {
     lexer = malloc(sizeof(*lexer));
 
-    lexer->src_size = DEFAULT_BUFFER;
-    lexer->src_capacity = DEFAULT_BUFFER;
-    lexer->source = malloc(lexer->src_capacity * sizeof(*lexer->source));
+    lexer->size = 0;
+    lexer->source = NULL;
 
-    lexer->buf_size = DEFAULT_BUFFER;
-    lexer->buf_capacity = DEFAULT_BUFFER;
-    lexer->token_buffer =
-        malloc(lexer->buf_capacity * sizeof(*lexer->token_buffer));
+    lexer->token_buffer = NULL;
 
     return lexer;
 }
@@ -71,18 +71,15 @@ void lexer_destroy(struct lexer *lexer) {
 
     free(lexer->source);
     lexer->source = NULL;
-    lexer->src_size = 0;
-    lexer->src_capacity = 0;
 
-    for (i = 0; i < lexer->buf_size; i++) {
+    for (i = 0; i < lexer->size; i++) {
         token_destroy(lexer->token_buffer[i]);
     }
 
     free(lexer->token_buffer);
     lexer->token_buffer = NULL;
 
-    lexer->buf_size = 0;
-    lexer->buf_capacity = 0;
+    lexer->size = 0;
 
     free(lexer);
     lexer = NULL;
@@ -122,6 +119,8 @@ struct token *token_create(struct token *token, enum token_type type) {
         break;
     }
     default: {
+        token->type = NONE;
+        token->literal = '\0';
         break;
     }
     }
@@ -131,4 +130,64 @@ struct token *token_create(struct token *token, enum token_type type) {
 void token_destroy(struct token *token) {
     free(token);
     token = NULL;
+}
+
+void run(char *source) {
+
+    int src_len = strlen(source);
+    if (src_len == 0) {
+        return;
+    }
+
+    vm_create();
+
+    vm.lexer->size = src_len;
+    vm.lexer->source = malloc(1 + vm.lexer->size * sizeof(*vm.lexer->source));
+    memcpy(vm.lexer->source, source, vm.lexer->size);
+    vm.lexer->source[vm.lexer->size] = '\0';
+
+    vm.lexer->token_buffer =
+        malloc(vm.lexer->size * sizeof(*vm.lexer->token_buffer));
+
+    tokenize(vm.lexer);
+
+    vm_destroy();
+}
+
+void tokenize(struct lexer *lexer) {
+    size_t i;
+    for (i = 0; i < lexer->size; i++) {
+        struct token *token;
+        switch (lexer->source[i]) {
+        case ('>'): {
+            token = token_create(token, GREATER);
+            break;
+        }
+        case ('<'): {
+            token = token_create(token, LESS);
+            break;
+        }
+        case ('('): {
+            token = token_create(token, OPEN_PAREN);
+            break;
+        }
+        case (')'): {
+            token = token_create(token, CLOSE_PAREN);
+            break;
+        }
+        case ('!'): {
+            token = token_create(token, BANG);
+            break;
+        }
+        case ('#'): {
+            token = token_create(token, HASH);
+            break;
+        }
+        default: {
+            token = token_create(token, NONE);
+            break;
+        }
+        }
+        lexer->token_buffer[i] = token;
+    }
 }

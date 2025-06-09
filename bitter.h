@@ -91,22 +91,19 @@ struct data {
 };
 
 struct lexer {
-    int src_size;
-    int src_capacity;
     char *source;
-
-    int buf_size;
-    int buf_capacity;
+    int size;
     struct token **token_buffer;
 };
 
 enum token_type {
-    GREATER,     // >
-    LESS,        // <
-    OPEN_PAREN,  // (
-    CLOSE_PAREN, // )
-    BANG,        // !
-    HASH,        // #
+    NONE = 0,
+    GREATER = 1,     // >
+    LESS = 2,        // <
+    OPEN_PAREN = 3,  // (
+    CLOSE_PAREN = 4, // )
+    BANG = 5,        // !
+    HASH = 6,        // #
 };
 
 struct token {
@@ -125,6 +122,9 @@ void lexer_destroy(struct lexer *lexer);
 
 struct token *token_create(struct token *token, enum token_type type);
 void token_destroy(struct token *token);
+
+void run(char *source);
+void tokenize(struct lexer *lexer);
 
 #ifdef __cplusplus
 }

@@ -75,8 +75,12 @@
 // }
 
 int main(int argc, char **argv) {
-    vm_create();
-    vm_destroy();
+
+    char *source = ">>>>>!";
+    // source = "";
+    source = "><()!#dafs";
+    run(source);
+
     // test0();
     // test1();
     // test2();
