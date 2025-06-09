@@ -33,8 +33,60 @@
 
 #include "bitter.h"
 
+// static void test0(void) {
+//     char *source = ">>>>>!";
+//     decode(source);
+// }
+// static void test1(void) {
+//     char *source = "<<<<<!";
+//     decode(source);
+// }
+// static void test2(void) {
+//     char *source = ">(<)!";
+//     decode(source);
+// }
+// static void test3(void) {
+//     char *source = ">><(><)";
+//     decode(source);
+// }
+// static void test4(void) {
+//     char *source = "(>><)>><!";
+//     decode(source);
+// }
+// static void test5(void) {
+//     char *source = ">><((>><)>><)!";
+//     decode(source);
+// }
+// static void test6(void) {
+//     char *source = "<";
+//     decode(source);
+// }
+// static void test7(void) {
+//     char *source = ">>><>>><>>><>>><>>><!";
+//     decode(source);
+// }
+// static void test8(void) {
+//     char *source = ">>><>>><>>><!";
+//     decode(source);
+// }
+// static void test9(void) {
+//     char *source = "!";
+//     decode(source);
+// }
+
 int main(int argc, char **argv) {
-    decode(">>[>]>!>><!<<!");
+    vm_create();
+    vm_destroy();
+    // test0();
+    // test1();
+    // test2();
+    // test3();
+    // test4();
+    // test5();
+    // test6();
+    // test7();
+    // test8();
+    // test9();
 
     /* MEMORY DEBUGGING - DO NOT TOUCH */
     f_debug_memory_init(NULL, NULL, NULL);

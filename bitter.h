@@ -77,8 +77,28 @@ extern "C" {
         _a > _b ? _a : _b;                                                     \
     })
 
-// FIX: use dynamic memory
-#define MAX_BUFFER 2048
+struct vm {
+    struct data *data;
+    struct lexer *lexer;
+    int data_pointer;
+    int instruction_pointer;
+};
+
+struct data {
+    unsigned char *buffer;
+    int size;
+    int capacity;
+};
+
+struct lexer {
+    int src_size;
+    int src_capacity;
+    char *source;
+
+    int buf_size;
+    int buf_capacity;
+    struct token **token_buffer;
+};
 
 enum token_type {
     GREATER,     // >
@@ -94,34 +114,17 @@ struct token {
     char literal;
 };
 
-void token_create(struct token *token, enum token_type type);
+void vm_create(void);
+void vm_destroy(void);
 
-struct lexer {
-    char *source;
-    int size;
-    // FIX: rewrite this to use dynamic memory
-    struct token *token_buffer; //[MAX_BUFFER];
-};
+struct data *data_create(struct data *data);
+void data_destroy(struct data *data);
 
-struct data {
-    unsigned char *buffer;
-    int size;
-    int capacity;
-    int data_pointer;
-    int data_pointer_max;
-};
+struct lexer *lexer_create(struct lexer *lexer);
+void lexer_destroy(struct lexer *lexer);
 
-void dump_used_memory(struct data *tape);
-
-void dump_full_memory(struct data *tape);
-
-void execute(struct lexer *lexer);
-
-void decode(char *source);
-
-void find_close_paren(struct lexer *lexer, size_t instruction_pointer);
-
-void find_open_paren(struct lexer *lexer, size_t instruction_pointer);
+struct token *token_create(struct token *token, enum token_type type);
+void token_destroy(struct token *token);
 
 #ifdef __cplusplus
 }
