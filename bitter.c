@@ -132,15 +132,12 @@ void token_destroy(struct token *token) {
     token = NULL;
 }
 
-void run(char *source) {
-
-    int src_len = strlen(source);
+void lexer_init(char *source) {
+    int src_len;
+    src_len = strlen(source);
     if (src_len == 0) {
         return;
     }
-
-    vm_create();
-
     vm.lexer->size = src_len;
     vm.lexer->source = malloc(1 + vm.lexer->size * sizeof(*vm.lexer->source));
     memcpy(vm.lexer->source, source, vm.lexer->size);
@@ -148,6 +145,13 @@ void run(char *source) {
 
     vm.lexer->token_buffer =
         malloc(vm.lexer->size * sizeof(*vm.lexer->token_buffer));
+}
+
+void run(char *source) {
+
+    vm_create();
+
+    lexer_init(source);
 
     tokenize(vm.lexer);
 

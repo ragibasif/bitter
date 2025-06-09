@@ -118,6 +118,7 @@ struct data *data_create(struct data *data);
 void data_destroy(struct data *data);
 
 struct lexer *lexer_create(struct lexer *lexer);
+void lexer_init(char *source);
 void lexer_destroy(struct lexer *lexer);
 
 struct token *token_create(struct token *token, enum token_type type);
