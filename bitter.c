@@ -13,7 +13,7 @@
 
 #include "bitter.h"
 
-#define MAX_BUFFER 2048
+#define MAX_BUFFER INT_MAX
 #define DEFAULT_BUFFER 1024
 
 struct vm vm;
@@ -174,9 +174,22 @@ static void validate_parentheses(char *source) {
     }
     src_len = j;
     parens[j] = '\0';
-    dbg(src_len);
-    dbg(parens);
+
+    char buffer[src_len];
+    for (i = j = 0; i < src_len; i++) {
+        if (parens[i] == '(') {
+            buffer[j++] = parens[i];
+        } else if (parens[i] == ')' && j > 0) {
+            j--;
+        } else {
+            // FIX: handle this error better
+            dbg(parens);
+        }
+    }
 }
+
+// TODO: a function that finds all parentheses and stores their matches
+// locations
 
 void run(char *source) {
 

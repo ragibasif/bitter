@@ -47,7 +47,7 @@ extern "C" {
 
 #include <assert.h> //assert
 #include <ctype.h>  //size_t
-#include <limits.h>
+#include <limits.h> // INT_MAX
 #include <stdarg.h>
 #include <stdbool.h> //true, false, bool
 #include <stddef.h>
