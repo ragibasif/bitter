@@ -79,6 +79,11 @@ static void test2(void) {
 
 int main(int argc, char **argv) {
 
+    // TODO: add repl
+    // TODO: read code from file
+    // TODO: Proper error handling
+    // TODO: example uses
+
     test0();
     // test1();
     test2();
