@@ -52,26 +52,32 @@ static void test2(void) {
 //     char *source = ">><(><)";
 //     decode(source);
 // }
+
 // static void test4(void) {
 //     char *source = "(>><)>><!";
 //     decode(source);
 // }
+
 // static void test5(void) {
 //     char *source = ">><((>><)>><)!";
 //     decode(source);
 // }
+
 // static void test6(void) {
 //     char *source = "<";
 //     decode(source);
 // }
+
 // static void test7(void) {
 //     char *source = ">>><>>><>>><>>><>>><!";
 //     decode(source);
 // }
+
 // static void test8(void) {
 //     char *source = ">>><>>><>>><!";
 //     decode(source);
 // }
+
 // static void test9(void) {
 //     char *source = "!";
 //     decode(source);
@@ -88,8 +94,8 @@ int main(int argc, char **argv) {
     // test1();
     test2();
     run("(((((())))))");
-    run("((())))))");
-    run("((((((");
+    // run("((())))))");
+    // run("((((((");
     // test3();
     // test4();
     // test5();

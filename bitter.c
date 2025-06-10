@@ -134,7 +134,6 @@ void lexer_init(char *source) {
     vm.lexer->size = src_len;
     vm.lexer->source = malloc(1 + vm.lexer->size * sizeof(*vm.lexer->source));
     memcpy(vm.lexer->source, source, vm.lexer->size);
-    free(source);
     vm.lexer->source[vm.lexer->size] = '\0';
     vm.lexer->token_buffer =
         malloc(vm.lexer->size * sizeof(*vm.lexer->token_buffer));
@@ -161,7 +160,7 @@ static char *sanitize_source(char *dest, char *source) {
     return dest;
 }
 
-static void validate_parentheses(char *source) {
+static bool validate_parentheses(char *source) {
     size_t i, j;
     int src_len;
     src_len = strlen(source);
@@ -172,20 +171,23 @@ static void validate_parentheses(char *source) {
             parens[j++] = source[i];
         }
     }
-    src_len = j;
-    parens[j] = '\0';
 
-    char buffer[src_len];
+    src_len = j;
+    parens[src_len] = '\0';
+
+    char buffer[src_len + 1];
+    buffer[src_len] = '\0';
     for (i = j = 0; i < src_len; i++) {
         if (parens[i] == '(') {
             buffer[j++] = parens[i];
-        } else if (parens[i] == ')' && j > 0) {
-            j--;
         } else {
-            // FIX: handle this error better
-            dbg(parens);
+            if (j <= 0) {
+                return false;
+            }
+            j--;
         }
     }
+    return true;
 }
 
 // TODO: a function that finds all parentheses and stores their matches
@@ -197,12 +199,21 @@ void run(char *source) {
 
     char *san_src;
     san_src = sanitize_source(san_src, source);
-    validate_parentheses(san_src);
+
+    if (!validate_parentheses(san_src)) {
+        fprintf(stderr, "Invalid parentheses.\n");
+        dbg("ERROR: Invalid parentheses!");
+        free(san_src);
+        vm_destroy();
+        exit(1);
+    }
+
     lexer_init(san_src);
 
     tokenize(vm.lexer);
     execute();
 
+    free(san_src);
     vm_destroy();
 }
 
