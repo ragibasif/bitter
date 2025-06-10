@@ -13,6 +13,7 @@
 
 #include "bitter.h"
 
+#define MAX_BUFFER 2048
 #define DEFAULT_BUFFER 1024
 
 struct vm vm;
@@ -22,10 +23,6 @@ void vm_create() {
     vm.lexer = lexer_create(vm.lexer);
     vm.data_pointer = 0;
     vm.instruction_pointer = 0;
-    // vm.lexer->buf_size = 1;
-    // struct token *token;
-    // token = token_create(token, GREATER);
-    // vm.lexer->token_buffer[0] = token;
 }
 
 void vm_destroy() {
@@ -119,8 +116,6 @@ struct token *token_create(struct token *token, enum token_type type) {
         break;
     }
     default: {
-        token->type = NONE;
-        token->literal = '\0';
         break;
     }
     }
@@ -135,25 +130,65 @@ void token_destroy(struct token *token) {
 void lexer_init(char *source) {
     int src_len;
     src_len = strlen(source);
-    if (src_len == 0) {
-        return;
-    }
+
     vm.lexer->size = src_len;
     vm.lexer->source = malloc(1 + vm.lexer->size * sizeof(*vm.lexer->source));
     memcpy(vm.lexer->source, source, vm.lexer->size);
+    free(source);
     vm.lexer->source[vm.lexer->size] = '\0';
-
     vm.lexer->token_buffer =
         malloc(vm.lexer->size * sizeof(*vm.lexer->token_buffer));
+}
+
+static char *sanitize_source(char *dest, char *source) {
+    size_t i, j;
+    int src_len;
+    src_len = strlen(source);
+    char valid_src[src_len + 1];
+    for (i = j = 0; i < src_len; i++) {
+        if (source[i] == '>' || source[i] == '<' || source[i] == '(' ||
+            source[i] == ')' || source[i] == '!' || source[i] == '#') {
+            valid_src[j++] = source[i];
+        }
+    }
+    src_len = j;
+    valid_src[j] = '\0';
+    dest = malloc(1 + src_len * sizeof(*dest));
+
+    memcpy(dest, valid_src, src_len);
+    dest[src_len] = '\0';
+
+    return dest;
+}
+
+static void validate_parentheses(char *source) {
+    size_t i, j;
+    int src_len;
+    src_len = strlen(source);
+    char parens[src_len + 1];
+
+    for (i = j = 0; i < src_len; i++) {
+        if (source[i] == '(' || source[i] == ')') {
+            parens[j++] = source[i];
+        }
+    }
+    src_len = j;
+    parens[j] = '\0';
+    dbg(src_len);
+    dbg(parens);
 }
 
 void run(char *source) {
 
     vm_create();
 
-    lexer_init(source);
+    char *san_src;
+    san_src = sanitize_source(san_src, source);
+    validate_parentheses(san_src);
+    lexer_init(san_src);
 
     tokenize(vm.lexer);
+    execute();
 
     vm_destroy();
 }
@@ -188,10 +223,76 @@ void tokenize(struct lexer *lexer) {
             break;
         }
         default: {
-            token = token_create(token, NONE);
             break;
         }
         }
         lexer->token_buffer[i] = token;
+    }
+}
+
+void execute(void) {
+
+    int max_data_ptr = vm.data_pointer;
+
+    // while (vm.instruction_pointer >= 0 &&
+    //            vm.instruction_pointer < vm.lexer->size ||
+    //        vm.data_pointer >= 0 && vm.data_pointer < vm.lexer->size) {
+    while (true) {
+        if (vm.instruction_pointer < 0 ||
+            vm.instruction_pointer >= vm.lexer->size || vm.data_pointer < 0 ||
+            vm.data_pointer >= vm.lexer->size) {
+            return;
+        }
+        switch (vm.lexer->token_buffer[vm.instruction_pointer]->type) {
+        case (GREATER): {
+            vm.data_pointer++;
+            max_data_ptr = max(vm.data_pointer, max_data_ptr);
+            vm.data->buffer[vm.data_pointer] = 1;
+            vm.instruction_pointer++;
+            break;
+        }
+        case (LESS): {
+            max_data_ptr = max(vm.data_pointer, max_data_ptr);
+            vm.data_pointer--;
+            vm.data->buffer[vm.data_pointer] = 1;
+            vm.instruction_pointer++;
+            break;
+        }
+        case (OPEN_PAREN): {
+            if (vm.data->buffer[vm.data_pointer] == 1) {
+                vm.instruction_pointer++;
+            } else {
+                // TODO: find next close paren + 1
+                vm.instruction_pointer++; // FIX: replace this placeholder
+            }
+            break;
+        }
+        case (CLOSE_PAREN): {
+            // TODO: find previous open paren
+            vm.instruction_pointer++; // FIX: replace this placeholder
+            break;
+        }
+        case (BANG): {
+            size_t i;
+            for (i = 0; i <= max_data_ptr; i++) {
+                printf("%d ", vm.data->buffer[i]);
+            }
+            putchar('\n');
+            vm.instruction_pointer++;
+            break;
+        }
+        case (HASH): {
+            size_t i;
+            for (i = 0; i < vm.data->size; i++) {
+                printf("%d ", vm.data->buffer[i]);
+            }
+            putchar('\n');
+            vm.instruction_pointer++;
+            break;
+        }
+        default: {
+            break;
+        }
+        }
     }
 }

@@ -33,18 +33,21 @@
 
 #include "bitter.h"
 
-// static void test0(void) {
-//     char *source = ">>>>>!";
-//     decode(source);
-// }
+static void test0(void) {
+    char *source = ">>>>>!";
+    run(source);
+}
+
 // static void test1(void) {
 //     char *source = "<<<<<!";
-//     decode(source);
+//     run(source);
 // }
-// static void test2(void) {
-//     char *source = ">(<)!";
-//     decode(source);
-// }
+
+static void test2(void) {
+    char *source = ">(<)!";
+    run(source);
+}
+
 // static void test3(void) {
 //     char *source = ">><(><)";
 //     decode(source);
@@ -76,14 +79,12 @@
 
 int main(int argc, char **argv) {
 
-    char *source = ">>>>>!";
-    // source = "";
-    source = "><()!#dafs";
-    run(source);
-
-    // test0();
+    test0();
     // test1();
-    // test2();
+    test2();
+    run("(((((())))))");
+    run("((())))))");
+    run("((((((");
     // test3();
     // test4();
     // test5();

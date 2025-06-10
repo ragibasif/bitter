@@ -97,7 +97,6 @@ struct lexer {
 };
 
 enum token_type {
-    NONE = 0,
     GREATER = 1,     // >
     LESS = 2,        // <
     OPEN_PAREN = 3,  // (
@@ -126,6 +125,7 @@ void token_destroy(struct token *token);
 
 void run(char *source);
 void tokenize(struct lexer *lexer);
+void execute(void);
 
 #ifdef __cplusplus
 }
