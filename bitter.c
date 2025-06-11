@@ -82,37 +82,44 @@ void lexer_destroy(struct lexer *lexer) {
     lexer = NULL;
 }
 
-struct token *token_create(struct token *token, enum token_type type) {
+struct token *token_create(struct token *token, enum token_type type,
+                           int location) {
     token = malloc(sizeof(*token));
     switch (type) {
     case (GREATER): {
         token->type = GREATER;
         token->literal = '>';
+        token->location = location;
         break;
     }
     case (LESS): {
         token->type = LESS;
         token->literal = '<';
+        token->location = location;
         break;
     }
     case (OPEN_PAREN): {
         token->type = OPEN_PAREN;
         token->literal = '(';
+        token->location = location;
         break;
     }
     case (CLOSE_PAREN): {
         token->type = CLOSE_PAREN;
         token->literal = ')';
+        token->location = location;
         break;
     }
     case (BANG): {
         token->type = BANG;
         token->literal = '!';
+        token->location = location;
         break;
     }
     case (HASH): {
         token->type = HASH;
         token->literal = '#';
+        token->location = location;
         break;
     }
     default: {
@@ -202,27 +209,27 @@ void tokenize(struct lexer *lexer) {
         struct token *token;
         switch (lexer->source[i]) {
         case ('>'): {
-            token = token_create(token, GREATER);
+            token = token_create(token, GREATER, i);
             break;
         }
         case ('<'): {
-            token = token_create(token, LESS);
+            token = token_create(token, LESS, i);
             break;
         }
         case ('('): {
-            token = token_create(token, OPEN_PAREN);
+            token = token_create(token, OPEN_PAREN, i);
             break;
         }
         case (')'): {
-            token = token_create(token, CLOSE_PAREN);
+            token = token_create(token, CLOSE_PAREN, i);
             break;
         }
         case ('!'): {
-            token = token_create(token, BANG);
+            token = token_create(token, BANG, i);
             break;
         }
         case ('#'): {
-            token = token_create(token, HASH);
+            token = token_create(token, HASH, i);
             break;
         }
         default: {
@@ -233,15 +240,31 @@ void tokenize(struct lexer *lexer) {
     }
 }
 
+static void match_parens(void) {
+    size_t i, j;
+    struct token *buffer[vm.lexer->size];
+
+    for (i = j = 0; i < vm.lexer->size; i++) {
+        if (vm.lexer->token_buffer[i]->type == OPEN_PAREN) {
+            buffer[j++] = vm.lexer->token_buffer[i];
+        } else {
+            if (vm.lexer->token_buffer[i]->type == CLOSE_PAREN) {
+                buffer[--j]->match_location =
+                    vm.lexer->token_buffer[i]->location;
+                vm.lexer->token_buffer[i]->match_location = buffer[j]->location;
+            }
+        }
+    }
+}
+
+// TODO: bounds checking
+
 void execute(void) {
 
     char invert_bit[2] = {[0] = 1, [1] = 0};
 
     vm.highest_data_pointer = vm.data_pointer;
 
-    // while (vm.instruction_pointer >= 0 &&
-    //            vm.instruction_pointer < vm.lexer->size ||
-    //        vm.data_pointer >= 0 && vm.data_pointer < vm.lexer->size) {
     while (true) {
         if (vm.instruction_pointer < 0 ||
             vm.instruction_pointer >= vm.lexer->size || vm.data_pointer < 0 ||
@@ -306,37 +329,39 @@ void execute(void) {
     }
 }
 
-// TODO: a function that finds all parentheses and stores their matches
-// locations
-
 static void bin_to_char(void) {
     size_t i;
-    size_t j = 0;
-    int buffer[8];
-    for (i = 0; i < vm.highest_data_pointer; i++) {
+    size_t j;
+    size_t k;
+    size_t byte_size;
+    int temp;
+    byte_size = 8;
+    char buffer[byte_size];
+    memset(buffer, 0, byte_size);
+    for (i = j = 0; i < vm.highest_data_pointer; i++) {
         buffer[j++] = vm.data->buffer[i];
-        if (j == 8) {
-            int temp = 0;
-            temp += buffer[0] & 1;
-            temp <<= 1;
-            temp += buffer[1] & 1;
-            temp <<= 1;
-            temp += buffer[2] & 1;
-            temp <<= 1;
-            temp += buffer[3] & 1;
-            temp <<= 1;
-            temp += buffer[4] & 1;
-            temp <<= 1;
-            temp += buffer[5] & 1;
-            temp <<= 1;
-            temp += buffer[6] & 1;
-            temp <<= 1;
-            temp += buffer[7] & 1;
-            dbg(buffer);
-            dbg(temp);
+        if (j == byte_size) {
+            k = 0;
+            temp = 0;
+            while (k < j) {
+                temp <<= 1;
+                temp += buffer[k++] & 1;
+            }
             printf("%c", temp);
+            memset(buffer, 0, byte_size);
             j = 0;
         }
+    }
+    if (j) {
+        k = 0;
+        temp = 0;
+        while (k < j) {
+            temp <<= 1;
+            temp += buffer[k++] & 1;
+        }
+        printf("%c", temp);
+        memset(buffer, 0, byte_size);
+        j = 0;
     }
 }
 
@@ -352,7 +377,11 @@ void run(char *source) {
     lexer_init(san_src);
 
     tokenize(vm.lexer);
+
+    match_parens();
+
     execute();
+
     bin_to_char();
 
     free(san_src);

@@ -88,6 +88,8 @@ enum token_type {
 struct token {
     enum token_type type;
     char literal;
+    int location;       // only for ()
+    int match_location; // only for ()
 };
 
 void vm_create(void);
@@ -100,7 +102,8 @@ struct lexer *lexer_create(struct lexer *lexer);
 void lexer_init(char *source);
 void lexer_destroy(struct lexer *lexer);
 
-struct token *token_create(struct token *token, enum token_type type);
+struct token *token_create(struct token *token, enum token_type type,
+                           int location);
 void token_destroy(struct token *token);
 
 void run(char *source);

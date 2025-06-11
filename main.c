@@ -38,10 +38,15 @@ static void hello_world(void) {
                    ">>>>><>><>><>><>><>>><>><>>>>><>>><>>>><>>><>>><>>>><>><>>>"
                    ">>><>><>><>>>>>>><>><>><>><>>><>><>>><>><>><>>>>><>>><>><>>"
                    "<>>><>><>>><>>><>><>>><>>><>><>>><>>><>><>>>><!";
+
     run(source);
 }
 
-static void truth_machine(void);
+static void truth_machine(void) {
+    // char *source = ">><!";
+    char *source = "><(>><)";
+    run(source);
+}
 
 // static void test0(void) {
 //     char *source = ">>>>>!";
@@ -100,11 +105,19 @@ int main(int argc, char **argv) {
     // TODO: Proper error handling
     // TODO: example uses
 
-    hello_world();
+    // hello_world();
+    // truth_machine();
     // test0();
     // test1();
     // test2();
-    // run("(((((())))))");
+    run("()");
+    putchar('\n');
+    run("(())");
+    putchar('\n');
+    run("()(((((())))))");
+    putchar('\n');
+    run("(((((())))))");
+    putchar('\n');
     // run("((())))))");
     // run("((((((");
     // test3();

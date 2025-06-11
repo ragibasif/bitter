@@ -1,5 +1,8 @@
 # Bitter Interpreter in C
 
+> [!WARNING]
+> Interpreter not complete yet.
+
 A C implementation of the Bitter esoteric programming language - a minimalist
 `Brainfuck` variant that operates on single-bit memory cells.
 
