@@ -55,10 +55,10 @@ void data_destroy(struct data *data) {
 struct lexer *lexer_create(struct lexer *lexer) {
     lexer = malloc(sizeof(*lexer));
 
-    lexer->size = 0;
-    lexer->source = NULL;
+    lexer->size = DEFAULT_BUFFER;
+    lexer->source = malloc(1 + DEFAULT_BUFFER * sizeof(*lexer->source));
 
-    lexer->token_buffer = NULL;
+    lexer->token_buffer = malloc(DEFAULT_BUFFER * sizeof(*lexer->token_buffer));
 
     return lexer;
 }
@@ -131,12 +131,17 @@ void lexer_init(char *source) {
     int src_len;
     src_len = strlen(source);
 
-    vm.lexer->size = src_len;
-    vm.lexer->source = malloc(1 + vm.lexer->size * sizeof(*vm.lexer->source));
+    if (vm.lexer->size != src_len) {
+        vm.lexer->size = src_len;
+        vm.lexer->source = realloc(
+            vm.lexer->source, 1 + vm.lexer->size * sizeof(*vm.lexer->source));
+        vm.lexer->token_buffer =
+            realloc(vm.lexer->token_buffer,
+                    vm.lexer->size * sizeof(*vm.lexer->token_buffer));
+    }
+
     memcpy(vm.lexer->source, source, vm.lexer->size);
     vm.lexer->source[vm.lexer->size] = '\0';
-    vm.lexer->token_buffer =
-        malloc(vm.lexer->size * sizeof(*vm.lexer->token_buffer));
 }
 
 static char *sanitize_source(char *dest, char *source) {
@@ -160,7 +165,7 @@ static char *sanitize_source(char *dest, char *source) {
     return dest;
 }
 
-static bool validate_parentheses(char *source) {
+static void validate_parentheses(char *source) {
     size_t i, j;
     int src_len;
     src_len = strlen(source);
@@ -182,12 +187,13 @@ static bool validate_parentheses(char *source) {
             buffer[j++] = parens[i];
         } else {
             if (j <= 0) {
-                return false;
+                fprintf(stderr, "SYNTAX ERROR: Invalid parentheses.\n");
+                exit(EXIT_FAILURE);
+                // return false;
             }
             j--;
         }
     }
-    return true;
 }
 
 // TODO: a function that finds all parentheses and stores their matches
@@ -200,13 +206,7 @@ void run(char *source) {
     char *san_src;
     san_src = sanitize_source(san_src, source);
 
-    if (!validate_parentheses(san_src)) {
-        fprintf(stderr, "Invalid parentheses.\n");
-        dbg("ERROR: Invalid parentheses!");
-        free(san_src);
-        vm_destroy();
-        exit(1);
-    }
+    validate_parentheses(san_src);
 
     lexer_init(san_src);
 

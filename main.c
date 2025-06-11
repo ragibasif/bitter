@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
     // test1();
     test2();
     run("(((((())))))");
-    // run("((())))))");
+    run("((())))))");
     // run("((((((");
     // test3();
     // test4();
