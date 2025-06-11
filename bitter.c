@@ -196,27 +196,6 @@ static void validate_parentheses(char *source) {
     }
 }
 
-// TODO: a function that finds all parentheses and stores their matches
-// locations
-
-void run(char *source) {
-
-    vm_create();
-
-    char *san_src;
-    san_src = sanitize_source(san_src, source);
-
-    validate_parentheses(san_src);
-
-    lexer_init(san_src);
-
-    tokenize(vm.lexer);
-    execute();
-
-    free(san_src);
-    vm_destroy();
-}
-
 void tokenize(struct lexer *lexer) {
     size_t i;
     for (i = 0; i < lexer->size; i++) {
@@ -256,7 +235,9 @@ void tokenize(struct lexer *lexer) {
 
 void execute(void) {
 
-    int max_data_ptr = vm.data_pointer;
+    char invert_bit[2] = {[0] = 1, [1] = 0};
+
+    vm.highest_data_pointer = vm.data_pointer;
 
     // while (vm.instruction_pointer >= 0 &&
     //            vm.instruction_pointer < vm.lexer->size ||
@@ -270,15 +251,19 @@ void execute(void) {
         switch (vm.lexer->token_buffer[vm.instruction_pointer]->type) {
         case (GREATER): {
             vm.data_pointer++;
-            max_data_ptr = max(vm.data_pointer, max_data_ptr);
-            vm.data->buffer[vm.data_pointer] = 1;
+            vm.highest_data_pointer =
+                max(vm.data_pointer, vm.highest_data_pointer);
+            vm.data->buffer[vm.data_pointer] =
+                invert_bit[vm.data->buffer[vm.data_pointer]];
             vm.instruction_pointer++;
             break;
         }
         case (LESS): {
-            max_data_ptr = max(vm.data_pointer, max_data_ptr);
+            vm.highest_data_pointer =
+                max(vm.data_pointer, vm.highest_data_pointer);
             vm.data_pointer--;
-            vm.data->buffer[vm.data_pointer] = 1;
+            vm.data->buffer[vm.data_pointer] =
+                invert_bit[vm.data->buffer[vm.data_pointer]];
             vm.instruction_pointer++;
             break;
         }
@@ -298,7 +283,7 @@ void execute(void) {
         }
         case (BANG): {
             size_t i;
-            for (i = 0; i <= max_data_ptr; i++) {
+            for (i = 0; i <= vm.highest_data_pointer; i++) {
                 printf("%d ", vm.data->buffer[i]);
             }
             putchar('\n');
@@ -319,4 +304,57 @@ void execute(void) {
         }
         }
     }
+}
+
+// TODO: a function that finds all parentheses and stores their matches
+// locations
+
+static void bin_to_char(void) {
+    size_t i;
+    size_t j = 0;
+    int buffer[8];
+    for (i = 0; i < vm.highest_data_pointer; i++) {
+        buffer[j++] = vm.data->buffer[i];
+        if (j == 8) {
+            int temp = 0;
+            temp += buffer[0] & 1;
+            temp <<= 1;
+            temp += buffer[1] & 1;
+            temp <<= 1;
+            temp += buffer[2] & 1;
+            temp <<= 1;
+            temp += buffer[3] & 1;
+            temp <<= 1;
+            temp += buffer[4] & 1;
+            temp <<= 1;
+            temp += buffer[5] & 1;
+            temp <<= 1;
+            temp += buffer[6] & 1;
+            temp <<= 1;
+            temp += buffer[7] & 1;
+            dbg(buffer);
+            dbg(temp);
+            printf("%c", temp);
+            j = 0;
+        }
+    }
+}
+
+void run(char *source) {
+
+    vm_create();
+
+    char *san_src;
+    san_src = sanitize_source(san_src, source);
+
+    validate_parentheses(san_src);
+
+    lexer_init(san_src);
+
+    tokenize(vm.lexer);
+    execute();
+    bin_to_char();
+
+    free(san_src);
+    vm_destroy();
 }

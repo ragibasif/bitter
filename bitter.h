@@ -13,27 +13,6 @@
  *
  */
 
-// Bitter commands:
-
-// >
-// increment data pointer and invert bit
-//
-// <
-// decrement data pointer and invert bit
-//
-// (
-// if [p] == 1, proceed to next command, otherwise advance to command after
-// matching ')'
-//
-// )
-// go back to matching (
-//
-// !
-// interpreter command: dump memory from 0 to highest value of data pointer
-//
-// #
-// interpreter command: pause program and dump memory
-
 #ifndef __BITTER_H__
 #define __BITTER_H__
 
@@ -62,8 +41,8 @@ extern "C" {
 /******************************************************************************/
 
 #define F_MEMORY_DEBUG /* turns on the memory debugging system */
-#define F_MEMORY_PRINT /* turns on the memory printing system */
-#define F_EXIT_CRASH   /* turns on the crash on exit */
+// #define F_MEMORY_PRINT /* turns on the memory printing system */
+// #define F_EXIT_CRASH /* turns on the crash on exit */
 #include "libs/dbg-macro/dbg.h"
 #include "libs/forge/forge.h"
 #include "libs/munit/munit.h"
@@ -81,6 +60,7 @@ struct vm {
     struct data *data;
     struct lexer *lexer;
     int data_pointer;
+    int highest_data_pointer;
     int instruction_pointer;
 };
 

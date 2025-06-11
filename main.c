@@ -33,20 +33,30 @@
 
 #include "bitter.h"
 
-static void test0(void) {
-    char *source = ">>>>>!";
+static void hello_world(void) {
+    char *source = ">>><>>>><>>><>>>>><>>>><>><>>>>><>><>><>>><>>>>><>><>><>>><"
+                   ">>>>><>><>><>><>><>>><>><>>>>><>>><>>>><>>><>>><>>>><>><>>>"
+                   ">>><>><>><>>>>>>><>><>><>><>>><>><>>><>><>><>>>>><>>><>><>>"
+                   "<>>><>><>>><>>><>><>>><>>><>><>>><>>><>><>>>><!";
     run(source);
 }
+
+static void truth_machine(void);
+
+// static void test0(void) {
+//     char *source = ">>>>>!";
+//     run(source);
+// }
 
 // static void test1(void) {
 //     char *source = "<<<<<!";
 //     run(source);
 // }
 
-static void test2(void) {
-    char *source = ">(<)!";
-    run(source);
-}
+// static void test2(void) {
+//     char *source = ">(<)!";
+//     run(source);
+// }
 
 // static void test3(void) {
 //     char *source = ">><(><)";
@@ -90,11 +100,12 @@ int main(int argc, char **argv) {
     // TODO: Proper error handling
     // TODO: example uses
 
-    test0();
+    hello_world();
+    // test0();
     // test1();
-    test2();
-    run("(((((())))))");
-    run("((())))))");
+    // test2();
+    // run("(((((())))))");
+    // run("((())))))");
     // run("((((((");
     // test3();
     // test4();
