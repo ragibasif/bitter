@@ -25,8 +25,8 @@ Key features:
 
 | Command | Description                                                |
 | ------- | ---------------------------------------------------------- |
-| `>`     | Move pointer right and invert current bit                  |
-| `<`     | Move pointer left and invert current bit                   |
+| `>`     | Move pointer right by 1 and invert the bit                 |
+| `<`     | Move pointer left by 1 and invert the bit                  |
 | `(`     | If current bit is 1, continue; else jump past matching `)` |
 | `)`     | Jump back to matching `(`                                  |
 | `!`     | (Debug) Dump memory from 0 to current pointer              |

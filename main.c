@@ -10,123 +10,145 @@
  * Bitter esoteric programming language interpreter in C.
  */
 
-// Bitter commands:
-
-// >
-// increment data pointer and invert bit
-
-// <
-// decrement data pointer and invert bit
-
-// (
-// if [p] == 1, proceed to next command, otherwise advance to command after
-// matching ')'
-
-// )
-// go back to matching (
-
-// !
-// interpreter command: dump memory from 0 to highest value of data pointer
-
-// #
-// interpreter command: pause program and dump memory
-
 #include "bitter.h"
 
-static void hello_world(void) {
-    char *source = ">>><>>>><>>><>>>>><>>>><>><>>>>><>><>><>>><>>>>><>><>><>>><"
-                   ">>>>><>><>><>><>><>>><>><>>>>><>>><>>>><>>><>>><>>>><>><>>>"
-                   ">>><>><>><>>>>>>><>><>><>><>>><>><>>><>><>><>>>>><>>><>><>>"
-                   "<>>><>><>>><>>><>><>>><>>><>><>>><>>><>><>>>><!";
-
-    run(source);
-}
-
 static void truth_machine(void) {
-    // char *source = ">><!";
-    char *source = "><(>><)";
+    char *source;
+
+    // Memory: 001
+    source = ">><!";
+
+    // WARNING: uncommenting the following line will cause the program to enter
+    // an infinite loop that turn all memory into 1
+
+    // Memory: 1111111111111111111111...
+    // source = "><(!>><)";
+
     run(source);
 }
 
-// static void test0(void) {
-//     char *source = ">>>>>!";
-//     run(source);
-// }
+static void test0(void) {
+    char *source;
 
-// static void test1(void) {
-//     char *source = "<<<<<!";
-//     run(source);
-// }
+    // 011111
+    source = ">>>>>!";
+    run(source);
+}
 
-// static void test2(void) {
-//     char *source = ">(<)!";
-//     run(source);
-// }
+static void test1(void) {
+    char *source;
 
-// static void test3(void) {
-//     char *source = ">><(><)";
-//     decode(source);
-// }
+    // Out of bounds error
+    source = "<<<<<!";
 
-// static void test4(void) {
-//     char *source = "(>><)>><!";
-//     decode(source);
-// }
+    run(source);
+}
 
-// static void test5(void) {
-//     char *source = ">><((>><)>><)!";
-//     decode(source);
-// }
+static void test2(void) {
+    char *source;
+    source = ">(<)!";
+    run(source);
+}
 
-// static void test6(void) {
-//     char *source = "<";
-//     decode(source);
-// }
+static void test3(void) {
+    char *source;
+    source = ">><(><)";
+    run(source);
+}
 
-// static void test7(void) {
-//     char *source = ">>><>>><>>><>>><>>><!";
-//     decode(source);
-// }
+static void test4(void) {
+    char *source;
+    source = "(>><)>><!";
+    run(source);
+}
 
-// static void test8(void) {
-//     char *source = ">>><>>><>>><!";
-//     decode(source);
-// }
+static void test5(void) {
+    char *source;
+    source = ">><((>><)>><)!";
+    run(source);
+}
 
-// static void test9(void) {
-//     char *source = "!";
-//     decode(source);
-// }
+static void test6(void) {
+    char *source = "<";
+    run(source);
+}
+
+static void test7(void) {
+    char *source = ">>><>>><>>><>>><>>><!";
+    run(source);
+}
+
+static void test8(void) {
+    char *source = ">>><>>><>>><!";
+    run(source);
+}
+
+static void test9(void) {
+    char *source = "!";
+    run(source);
+}
+
+static void repl() {
+    char line[DEFAULT_BUFFER];
+    for (;;) {
+        printf("> ");
+
+        if (!fgets(line, sizeof(line), stdin)) {
+            printf("\n");
+            break;
+        }
+        run(line);
+    }
+}
+
+static char *read_file(const char *filepath) {
+
+    FILE *file = fopen(filepath, "rb");
+    if (!file) {
+        ERROR("Could not open file \"%s\".\n", filepath);
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(file, 0L, SEEK_END);
+    size_t size = ftell(file);
+    // fseek(file, 0L, SEEK_SET);
+    rewind(file);
+
+    char *buffer = malloc(1 + size * sizeof(*buffer));
+    if (!buffer) {
+        ERROR("Failed to read memory for \"%s\".\n", filepath);
+        exit(EXIT_FAILURE);
+    }
+
+    size_t bytes = fread(buffer, sizeof(char), size, file);
+    if (bytes < size) {
+        ERROR("Failed to read file \"%s\".\n", filepath);
+        exit(EXIT_FAILURE);
+    }
+
+    buffer[bytes] = '\0';
+
+    fclose(file);
+    return buffer;
+}
+
+static void run_file(const char *path) {
+    char *source = read_file(path);
+    run(source);
+    free(source);
+}
 
 int main(int argc, char **argv) {
 
-    // TODO: add repl
-    // TODO: read code from file
-    // TODO: Proper error handling
+    if (argc == 1) {
+        repl();
+    } else if (argc == 2) {
+        run_file(argv[1]);
+    } else {
+        ERROR("Usage: bitter [path]\n");
+        exit(EXIT_FAILURE);
+    }
     // TODO: example uses
-
-    // hello_world();
-    // truth_machine();
-    // test0();
-    // test1();
-    // test2();
-    run("()");
-    putchar('\n');
-    run("(())");
-    putchar('\n');
-    run("()(((((())))))");
-    putchar('\n');
-    run("(((((())))))");
-    putchar('\n');
-    // run("((())))))");
-    // run("((((((");
-    // test3();
-    // test4();
-    // test5();
-    // test6();
-    // test7();
-    // test8();
-    // test9();
 
     /* MEMORY DEBUGGING - DO NOT TOUCH */
     f_debug_memory_init(NULL, NULL, NULL);

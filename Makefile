@@ -4,7 +4,7 @@ MAGENTA=\033[0;95m
 RESET=\033[0m
 
 CC := clang
-CFLAGS := -std=c99  -Wall -Wextra -Weverything -O1 -g -pedantic -v -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls
+CFLAGS := -std=c99 -Wall -Wextra -Weverything -O1 -g -pedantic -v -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls
 DBG = lldb
 
 LDFLAGS := -v -lc
@@ -14,11 +14,11 @@ EXECUTABLE := bitter
 
 SRCS := $(wildcard *.c)
 SRCS += $(wildcard */*.c)
-SRCS += $(wildcard */*/*.c)
+# SRCS += $(wildcard */*/*.c)
 
 HDRS := $(wildcard *.h)
 HDRS += $(wildcard */*.h)
-HDRS += $(wildcard */*/*.h)
+# HDRS += $(wildcard */*/*.h)
 
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 

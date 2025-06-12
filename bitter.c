@@ -13,8 +13,24 @@
 
 #include "bitter.h"
 
-#define MAX_BUFFER INT_MAX
-#define DEFAULT_BUFFER 1024
+void error_print(const char *file, const unsigned line, const char *function,
+                 const char *format, ...) {
+
+    time_t now;
+    char *time_str;
+    now = time(NULL);
+    time_str = ctime(&now);
+    time_str[strlen(time_str) - 1] = '\0';
+
+    va_list args;
+    va_start(args, format);
+    fprintf(stderr, "%s%s[%s] %s:%d:%s()%s %s%sERROR:%s ", DEFAULT, DIM,
+            time_str, file, line, function, RESET, BRIGHT_RED, BOLD, RESET);
+    fprintf(stderr, "%s", BOLD);
+    vfprintf(stderr, format, args);
+    fprintf(stderr, "%s", RESET);
+    va_end(args);
+}
 
 struct vm vm;
 
@@ -33,9 +49,19 @@ void vm_destroy() {
 struct data *data_create(struct data *data) {
     size_t i;
     data = malloc(sizeof(*data));
-    data->buffer = malloc(DEFAULT_BUFFER * sizeof(*data->buffer));
+    if (!data) {
+        ERROR("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     data->size = DEFAULT_BUFFER;
-    data->capacity = DEFAULT_BUFFER;
+    data->capacity = DEFAULT_BUFFER * 2;
+    data->buffer = malloc(data->capacity * sizeof(*data->buffer));
+
+    if (!data->buffer) {
+        ERROR("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
 
     for (i = 0; i < data->capacity; i++) {
         data->buffer[i] = 0;
@@ -55,10 +81,25 @@ void data_destroy(struct data *data) {
 struct lexer *lexer_create(struct lexer *lexer) {
     lexer = malloc(sizeof(*lexer));
 
+    if (!lexer) {
+        ERROR("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     lexer->size = DEFAULT_BUFFER;
     lexer->source = malloc(1 + DEFAULT_BUFFER * sizeof(*lexer->source));
 
-    lexer->token_buffer = malloc(DEFAULT_BUFFER * sizeof(*lexer->token_buffer));
+    if (!lexer->source) {
+        ERROR("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    lexer->buffer = malloc(DEFAULT_BUFFER * sizeof(*lexer->buffer));
+
+    if (!lexer->buffer) {
+        ERROR("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
 
     return lexer;
 }
@@ -70,11 +111,11 @@ void lexer_destroy(struct lexer *lexer) {
     lexer->source = NULL;
 
     for (i = 0; i < lexer->size; i++) {
-        token_destroy(lexer->token_buffer[i]);
+        token_destroy(lexer->buffer[i]);
     }
 
-    free(lexer->token_buffer);
-    lexer->token_buffer = NULL;
+    free(lexer->buffer);
+    lexer->buffer = NULL;
 
     lexer->size = 0;
 
@@ -85,6 +126,11 @@ void lexer_destroy(struct lexer *lexer) {
 struct token *token_create(struct token *token, enum token_type type,
                            int location) {
     token = malloc(sizeof(*token));
+
+    if (!token) {
+        ERROR("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
     switch (type) {
     case (GREATER): {
         token->type = GREATER;
@@ -142,9 +188,18 @@ void lexer_init(char *source) {
         vm.lexer->size = src_len;
         vm.lexer->source = realloc(
             vm.lexer->source, 1 + vm.lexer->size * sizeof(*vm.lexer->source));
-        vm.lexer->token_buffer =
-            realloc(vm.lexer->token_buffer,
-                    vm.lexer->size * sizeof(*vm.lexer->token_buffer));
+
+        if (!vm.lexer->source) {
+            ERROR("Memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+        vm.lexer->buffer = realloc(vm.lexer->buffer,
+                                   vm.lexer->size * sizeof(*vm.lexer->buffer));
+
+        if (!vm.lexer->buffer) {
+            ERROR("Memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     memcpy(vm.lexer->source, source, vm.lexer->size);
@@ -165,6 +220,11 @@ static char *sanitize_source(char *dest, char *source) {
     src_len = j;
     valid_src[j] = '\0';
     dest = malloc(1 + src_len * sizeof(*dest));
+
+    if (!dest) {
+        ERROR("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
 
     memcpy(dest, valid_src, src_len);
     dest[src_len] = '\0';
@@ -194,9 +254,8 @@ static void validate_parentheses(char *source) {
             buffer[j++] = parens[i];
         } else {
             if (j <= 0) {
-                fprintf(stderr, "SYNTAX ERROR: Invalid parentheses.\n");
+                ERROR("SYNTAX ERROR: Invalid parentheses.\n");
                 exit(EXIT_FAILURE);
-                // return false;
             }
             j--;
         }
@@ -236,7 +295,7 @@ void tokenize(struct lexer *lexer) {
             break;
         }
         }
-        lexer->token_buffer[i] = token;
+        lexer->buffer[i] = token;
     }
 }
 
@@ -245,19 +304,101 @@ static void match_parens(void) {
     struct token *buffer[vm.lexer->size];
 
     for (i = j = 0; i < vm.lexer->size; i++) {
-        if (vm.lexer->token_buffer[i]->type == OPEN_PAREN) {
-            buffer[j++] = vm.lexer->token_buffer[i];
+        if (vm.lexer->buffer[i]->type == OPEN_PAREN) {
+            buffer[j++] = vm.lexer->buffer[i];
         } else {
-            if (vm.lexer->token_buffer[i]->type == CLOSE_PAREN) {
-                buffer[--j]->match_location =
-                    vm.lexer->token_buffer[i]->location;
-                vm.lexer->token_buffer[i]->match_location = buffer[j]->location;
+            if (vm.lexer->buffer[i]->type == CLOSE_PAREN) {
+                buffer[--j]->match_location = vm.lexer->buffer[i]->location;
+                vm.lexer->buffer[i]->match_location = buffer[j]->location;
             }
         }
     }
 }
 
-// TODO: bounds checking
+static void memory_check() {
+    if (vm.data->size == vm.data->capacity) {
+        vm.data->capacity *= 2;
+        vm.data = realloc(vm.data, vm.data->capacity * sizeof(*vm.data));
+        if (!vm.data) {
+            ERROR("Memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+static bool bounds_check() {
+    if (vm.instruction_pointer < 0 ||
+        vm.instruction_pointer >= vm.lexer->size || vm.data_pointer < 0) {
+        return false;
+    }
+    return true;
+}
+
+static void memory_dump(void) {
+    size_t i, j;
+    size_t size;
+    size = CEIL_DIV(vm.highest_data_pointer, 8);
+    int buffer[size];
+    for (i = 0; i < size; i++) {
+        buffer[i] = 0;
+    }
+
+    for (i = j = 0; i <= vm.highest_data_pointer; i++) {
+        buffer[j] <<= 1;
+        buffer[j] += vm.data->buffer[i];
+        if ((i + 1) % 8 == 0) {
+            j++;
+        }
+    }
+
+    puts("========================================");
+    puts("Memory Dump: ");
+    puts("========================================");
+
+    puts("--------------------");
+    puts("Tape (Bits)");
+    puts("--------------------");
+    for (i = 0; i <= vm.highest_data_pointer; i++) {
+        printf("%d ", vm.data->buffer[i]);
+        if ((i + 1) % 8 == 0) {
+            putchar('\n');
+        }
+    }
+    putchar('\n');
+
+    puts("--------------------");
+    puts("Tape (Char)");
+    puts("--------------------");
+    for (i = 0; i < size; i++) {
+        printf("%c", buffer[i]);
+    }
+    putchar('\n');
+
+    puts("--------------------");
+    puts("Tape (Int)");
+    puts("--------------------");
+    for (i = 0; i < size; i++) {
+        printf("%d ", buffer[i]);
+    }
+    putchar('\n');
+
+    puts("--------------------");
+    puts("Tape (Hex)");
+    puts("--------------------");
+    for (i = 0; i < size; i++) {
+        printf("%x ", buffer[i]);
+    }
+    putchar('\n');
+
+    puts("--------------------");
+    puts("Tape (Oct)");
+    puts("--------------------");
+    for (i = 0; i < size; i++) {
+        printf("%o ", buffer[i]);
+    }
+    putchar('\n');
+    puts("========================================");
+}
 
 void execute(void) {
 
@@ -266,16 +407,25 @@ void execute(void) {
     vm.highest_data_pointer = vm.data_pointer;
 
     while (true) {
-        if (vm.instruction_pointer < 0 ||
-            vm.instruction_pointer >= vm.lexer->size || vm.data_pointer < 0 ||
-            vm.data_pointer >= vm.lexer->size) {
+        if (!bounds_check()) {
             return;
         }
-        switch (vm.lexer->token_buffer[vm.instruction_pointer]->type) {
+        switch (vm.lexer->buffer[vm.instruction_pointer]->type) {
         case (GREATER): {
+            if (vm.data_pointer == vm.data->size) {
+                vm.data->size++;
+            }
             vm.data_pointer++;
+
+            memory_check();
+
+            if (!bounds_check()) {
+
+                ERROR("Out of bounds error.\n");
+                exit(EXIT_FAILURE);
+            }
             vm.highest_data_pointer =
-                max(vm.data_pointer, vm.highest_data_pointer);
+                MAX(vm.data_pointer, vm.highest_data_pointer);
             vm.data->buffer[vm.data_pointer] =
                 invert_bit[vm.data->buffer[vm.data_pointer]];
             vm.instruction_pointer++;
@@ -283,42 +433,58 @@ void execute(void) {
         }
         case (LESS): {
             vm.highest_data_pointer =
-                max(vm.data_pointer, vm.highest_data_pointer);
+                MAX(vm.data_pointer, vm.highest_data_pointer);
             vm.data_pointer--;
+
+            if (!bounds_check()) {
+                ERROR("Out of bounds error.\n");
+                exit(EXIT_FAILURE);
+            }
             vm.data->buffer[vm.data_pointer] =
                 invert_bit[vm.data->buffer[vm.data_pointer]];
             vm.instruction_pointer++;
             break;
         }
         case (OPEN_PAREN): {
-            if (vm.data->buffer[vm.data_pointer] == 1) {
-                vm.instruction_pointer++;
-            } else {
-                // TODO: find next close paren + 1
-                vm.instruction_pointer++; // FIX: replace this placeholder
+            if (vm.data->buffer[vm.data_pointer] != 1) {
+                vm.instruction_pointer =
+                    vm.lexer->buffer[vm.instruction_pointer]->match_location;
             }
+            vm.instruction_pointer++;
+
+            if (!bounds_check()) {
+                // ERROR("Out of bounds error.\n");
+                return;
+            }
+
             break;
         }
         case (CLOSE_PAREN): {
-            // TODO: find previous open paren
-            vm.instruction_pointer++; // FIX: replace this placeholder
+            vm.instruction_pointer =
+                vm.lexer->buffer[vm.instruction_pointer]->match_location;
+
+            if (!bounds_check()) {
+                // ERROR("Out of bounds error.\n");
+                return;
+            }
             break;
         }
+
         case (BANG): {
             size_t i;
             for (i = 0; i <= vm.highest_data_pointer; i++) {
                 printf("%d ", vm.data->buffer[i]);
+                if ((i + 1) % 8 == 0) {
+                    putchar('\n');
+                }
             }
             putchar('\n');
             vm.instruction_pointer++;
             break;
         }
+
         case (HASH): {
-            size_t i;
-            for (i = 0; i < vm.data->size; i++) {
-                printf("%d ", vm.data->buffer[i]);
-            }
-            putchar('\n');
+            memory_dump();
             vm.instruction_pointer++;
             break;
         }
@@ -326,42 +492,6 @@ void execute(void) {
             break;
         }
         }
-    }
-}
-
-static void bin_to_char(void) {
-    size_t i;
-    size_t j;
-    size_t k;
-    size_t byte_size;
-    int temp;
-    byte_size = 8;
-    char buffer[byte_size];
-    memset(buffer, 0, byte_size);
-    for (i = j = 0; i < vm.highest_data_pointer; i++) {
-        buffer[j++] = vm.data->buffer[i];
-        if (j == byte_size) {
-            k = 0;
-            temp = 0;
-            while (k < j) {
-                temp <<= 1;
-                temp += buffer[k++] & 1;
-            }
-            printf("%c", temp);
-            memset(buffer, 0, byte_size);
-            j = 0;
-        }
-    }
-    if (j) {
-        k = 0;
-        temp = 0;
-        while (k < j) {
-            temp <<= 1;
-            temp += buffer[k++] & 1;
-        }
-        printf("%c", temp);
-        memset(buffer, 0, byte_size);
-        j = 0;
     }
 }
 
@@ -381,8 +511,6 @@ void run(char *source) {
     match_parens();
 
     execute();
-
-    bin_to_char();
 
     free(san_src);
     vm_destroy();

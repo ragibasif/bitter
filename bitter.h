@@ -24,6 +24,7 @@ extern "C" {
 /*                                  INCLUDES                                  */
 /******************************************************************************/
 
+#include "libs/AEC.h"
 #include <assert.h> //assert
 #include <ctype.h>  //size_t
 #include <limits.h> // INT_MAX
@@ -41,20 +42,29 @@ extern "C" {
 /******************************************************************************/
 
 #define F_MEMORY_DEBUG /* turns on the memory debugging system */
-// #define F_MEMORY_PRINT /* turns on the memory printing system */
+#define F_MEMORY_PRINT /* turns on the memory printing system */
 // #define F_EXIT_CRASH /* turns on the crash on exit */
-#include "libs/dbg-macro/dbg.h"
-#include "libs/forge/forge.h"
-#include "libs/munit/munit.h"
+// #include "libs/dbg.h"
+#include "libs/forge.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define max(a, b)                                                              \
+#define MAX(a, b)                                                              \
     ({                                                                         \
         __typeof__(a) _a = (a);                                                \
         __typeof__(b) _b = (b);                                                \
         _a > _b ? _a : _b;                                                     \
     })
+
+#define FLOOR_DIV(x, y) ((x) / (y))
+#define CEIL_DIV(x, y) FLOOR_DIV((x) + (y - 1), y)
+
+#define DEFAULT_BUFFER 64
+#define ERROR(fmt, ...)                                                        \
+    error_print(__FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+
+void error_print(const char *file, const unsigned line, const char *function,
+                 const char *format, ...);
 
 struct vm {
     struct data *data;
@@ -73,7 +83,7 @@ struct data {
 struct lexer {
     char *source;
     int size;
-    struct token **token_buffer;
+    struct token **buffer;
 };
 
 enum token_type {

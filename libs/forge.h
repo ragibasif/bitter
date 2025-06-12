@@ -1,7 +1,3 @@
-// WARNING: This is a modified and much smaller version of the original Forge
-// library. I'm only using the memory debugging functionality.
-// - Ragib Asif [May 12 2025]
-//
 // stolen from: https://github.com/quelsolaar/MergeSource/blob/main/forge.h
 //
 //
@@ -11,7 +7,7 @@
  * and all other Quel Solaar libraries and applications. Because it is included
  * in all files it can provide some very useful functiuonality such as debugging
  * memory and help find memory leaks. Forge is designed to be lightweight and
- * compleatly platform and dependency indipendent.
+ * completely platform and dependency independent.
  */
 
 #ifndef __FORGE_H__
@@ -31,7 +27,7 @@ that replace malloc, free and realloc and allows the system to kept track of
 and report where memory is being allocated, how much and if the memory is
 being freed. This is very useful for finding memory leaks in large
 applications. The system can also over allocate memory and fill it with a magic
-number and can therefor detect if the application writes outside of the
+number and can therefore detect if the application writes outside of the
 allocated memory. If F_EXIT_CRASH is defined, then exit(); will be replaced with
 a function that writes to NULL. This will make it trivial ti find out where an
 application exits using any debugger., */
@@ -72,7 +68,7 @@ extern void f_debug_mem_reset(
               specific point in your code*/
 extern size_t
 f_debug_mem_consumption(void); /* add up all memory consumed by mallocsd and
-                                  reallocs coverd by the memory debugger .*/
+                                  reallocs covered by the memory debugger .*/
 extern bool f_debug_mem_query(
     void *pointer, unsigned int *line, char **file,
     size_t *size); /* query the size and place of allocation of a pointer */
