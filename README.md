@@ -46,7 +46,39 @@ Key features:
    make all
    ```
 
+## Usage
+
+### REPL
+
+Run the following in the command line to start the `REPL`:
+
+```shell
+./bitter
+```
+
+To exit out of the `REPL`, enter the following:
+
+```shell
+:quit
+```
+
+### Source File
+
+Run the `./bitter` command with the `<filename>.bitr` as the argument:
+
+```shell
+./bitter <filename>.bitr
+```
+
 ## Examples
+
+Example of evaluating the truth machine from the `REPL`:
+
+![REPL Truth Machine](./assets/01_repl_demo_tm0.gif)
+
+Example of evaluating the truth machine from a source file:
+
+![Source File Truth Machine](./assets/02_src_file_demo_tm0.gif)
 
 ## Acknowledgements
 
