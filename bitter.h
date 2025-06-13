@@ -20,18 +20,9 @@
 extern "C" {
 #endif // __cplusplus
 
-/******************************************************************************/
-/*                                  INCLUDES                                  */
-/******************************************************************************/
-
-#include "libs/AEC.h"
-#include <assert.h> //assert
-#include <ctype.h>  //size_t
-#include <limits.h> // INT_MAX
-#include <stdarg.h>
-#include <stdbool.h> //true, false, bool
-#include <stddef.h>
-#include <stdint.h>
+#include "libs/AEC.h" // ANSI escape codes
+#include <stdarg.h>   // variadic functions
+#include <stdbool.h>  //true, false, bool
 #include <stdio.h> //Includes the standard I/O library for functions like `printf`.
 #include <stdlib.h> //Includes the standard library for functions like `malloc`, `free`, and `realloc`.
 #include <string.h> //Includes the string manipulation library for functions like `memcpy`.
@@ -41,13 +32,16 @@ extern "C" {
 /*                          DEBUGGING - DO NOT TOUCH                          */
 /******************************************************************************/
 
-#define F_MEMORY_DEBUG /* turns on the memory debugging system */
-#define F_MEMORY_PRINT /* turns on the memory printing system */
-// #define F_EXIT_CRASH /* turns on the crash on exit */
-// #include "libs/dbg.h"
-#include "libs/forge.h"
+// #define F_MEMORY_DEBUG /* turns on the memory debugging system */
 
-////////////////////////////////////////////////////////////////////////////////
+#ifdef F_MEMORY_DEBUG
+#define F_MEMORY_PRINT /* turns on the memory printing system */
+#define F_EXIT_CRASH   /* turns on the crash on exit */
+#include "libs/dbg.h"
+#include "libs/forge.h"
+#endif
+
+/******************************************************************************/
 
 #define MAX(a, b)                                                              \
     ({                                                                         \
@@ -59,7 +53,6 @@ extern "C" {
 #define FLOOR_DIV(x, y) ((x) / (y))
 #define CEIL_DIV(x, y) FLOOR_DIV((x) + (y - 1), y)
 
-#define DEFAULT_BUFFER 64
 #define ERROR(fmt, ...)                                                        \
     error_print(__FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
 
@@ -75,7 +68,7 @@ struct vm {
 };
 
 struct data {
-    unsigned char *buffer;
+    char *buffer;
     int size;
     int capacity;
 };
@@ -98,8 +91,8 @@ enum token_type {
 struct token {
     enum token_type type;
     char literal;
-    int location;       // only for ()
-    int match_location; // only for ()
+    size_t location;       // only for ()
+    size_t match_location; // only for ()
 };
 
 void vm_create(void);
@@ -119,6 +112,8 @@ void token_destroy(struct token *token);
 void run(char *source);
 void tokenize(struct lexer *lexer);
 void execute(void);
+
+void memory_dump(enum token_type type);
 
 #ifdef __cplusplus
 }

@@ -13,6 +13,8 @@
 
 #include "bitter.h"
 
+#define DEFAULT_BUFFER 256
+
 void error_print(const char *file, const unsigned line, const char *function,
                  const char *format, ...) {
 
@@ -334,16 +336,98 @@ static bool bounds_check() {
     return true;
 }
 
-static void memory_dump(void) {
+static const char *char_name(unsigned char c) {
+    switch (c) {
+    case 0x00:
+        return "NUL"; // Null
+    case 0x01:
+        return "SOH"; // Start of Header
+    case 0x02:
+        return "STX"; // Start of Text
+    case 0x03:
+        return "ETX"; // End of Text
+    case 0x04:
+        return "EOT"; // End of Transmission
+    case 0x05:
+        return "ENQ"; // Enquiry
+    case 0x06:
+        return "ACK"; // Acknowledge
+    case 0x07:
+        return "BEL"; // Bell
+    case 0x08:
+        return "BS"; // Backspace
+    case 0x09:
+        return "HT"; // Horizontal Tab
+    case 0x0A:
+        return "LF"; // Line Feed
+    case 0x0B:
+        return "VT"; // Vertical Tab
+    case 0x0C:
+        return "FF"; // Form Feed
+    case 0x0D:
+        return "CR"; // Carriage Return
+    case 0x0E:
+        return "SO"; // Shift Out
+    case 0x0F:
+        return "SI"; // Shift In
+    case 0x10:
+        return "DLE"; // Data Link Escape
+    case 0x11:
+        return "DC1"; // Device Control 1
+    case 0x12:
+        return "DC2"; // Device Control 2
+    case 0x13:
+        return "DC3"; // Device Control 3
+    case 0x14:
+        return "DC4"; // Device Control 4
+    case 0x15:
+        return "NAK"; // Negative Acknowledge
+    case 0x16:
+        return "SYN"; // Synchronous Idle
+    case 0x17:
+        return "ETB"; // End of Transmission Block
+    case 0x18:
+        return "CAN"; // Cancel
+    case 0x19:
+        return "EM"; // End of Medium
+    case 0x1A:
+        return "SUB"; // Substitute
+    case 0x1B:
+        return "ESC"; // Escape
+    case 0x1C:
+        return "FS"; // File Separator
+    case 0x1D:
+        return "GS"; // Group Separator
+    case 0x1E:
+        return "RS"; // Record Separator
+    case 0x1F:
+        return "US"; // Unit Separator
+    case 0x7F:
+        return "DEL"; // Delete
+    default:
+        return NULL; // Printable
+    }
+}
+
+void memory_dump(enum token_type type) {
+    size_t boundary;
+    char mem_type;
+    if (type == BANG) {
+        boundary = vm.highest_data_pointer + 1;
+        mem_type = '!';
+    } else {
+        boundary = vm.data->size;
+        mem_type = '#';
+    }
     size_t i, j;
-    size_t size;
-    size = CEIL_DIV(vm.highest_data_pointer, 8);
+    size_t size = CEIL_DIV(boundary, 8);
     int buffer[size];
+
     for (i = 0; i < size; i++) {
         buffer[i] = 0;
     }
 
-    for (i = j = 0; i <= vm.highest_data_pointer; i++) {
+    for (i = j = 0; i < boundary; i++) {
         buffer[j] <<= 1;
         buffer[j] += vm.data->buffer[i];
         if ((i + 1) % 8 == 0) {
@@ -351,53 +435,59 @@ static void memory_dump(void) {
         }
     }
 
-    puts("========================================");
-    puts("Memory Dump: ");
-    puts("========================================");
+    putchar('\n');
+    puts(DIM "========================================" RESET);
+    printf("%sMemory Dump (%c):%s\n", DIM, mem_type, RESET);
+    puts(DIM "========================================" RESET);
 
-    puts("--------------------");
-    puts("Tape (Bits)");
-    puts("--------------------");
-    for (i = 0; i <= vm.highest_data_pointer; i++) {
+    printf(DIM MAGENTA "\n-- Tape (Bits) --\n" RESET);
+    for (i = 0; i < boundary; i++) {
         printf("%d ", vm.data->buffer[i]);
         if ((i + 1) % 8 == 0) {
             putchar('\n');
         }
     }
+    if (i % 64 != 0)
+        putchar('\n');
+
+    printf(DIM GREEN "\n-- Tape (Char) --\n" RESET);
+    for (i = 0; i < size; i++) {
+        const char *name = char_name((unsigned char)buffer[i]);
+        if (name) {
+            printf("[%s] ", name);
+        } else {
+            printf("%c ", buffer[i]);
+        }
+    }
+
     putchar('\n');
 
-    puts("--------------------");
-    puts("Tape (Char)");
-    puts("--------------------");
+    printf(DIM BLUE "\n-- Tape (Int) --\n" RESET);
+    for (i = 0; i < size; i++) {
+        printf("%3d ", buffer[i]);
+    }
+    putchar('\n');
+
+    printf(DIM YELLOW "\n-- Tape (Hex) --\n" RESET);
+    for (i = 0; i < size; i++) {
+        printf("0x%02X ", buffer[i]);
+    }
+    putchar('\n');
+
+    printf(DIM RED "\n-- Tape (Oct) --\n" RESET);
+    for (i = 0; i < size; i++) {
+        printf("0%03o ", buffer[i]);
+    }
+    putchar('\n');
+
+    printf(DIM CYAN "\n-- Tape (Rendered) --\n" RESET);
     for (i = 0; i < size; i++) {
         printf("%c", buffer[i]);
     }
+
     putchar('\n');
 
-    puts("--------------------");
-    puts("Tape (Int)");
-    puts("--------------------");
-    for (i = 0; i < size; i++) {
-        printf("%d ", buffer[i]);
-    }
-    putchar('\n');
-
-    puts("--------------------");
-    puts("Tape (Hex)");
-    puts("--------------------");
-    for (i = 0; i < size; i++) {
-        printf("%x ", buffer[i]);
-    }
-    putchar('\n');
-
-    puts("--------------------");
-    puts("Tape (Oct)");
-    puts("--------------------");
-    for (i = 0; i < size; i++) {
-        printf("%o ", buffer[i]);
-    }
-    putchar('\n');
-    puts("========================================");
+    puts(DIM "========================================" RESET);
 }
 
 void execute(void) {
@@ -471,23 +561,32 @@ void execute(void) {
         }
 
         case (BANG): {
-            size_t i;
-            for (i = 0; i <= vm.highest_data_pointer; i++) {
-                printf("%d ", vm.data->buffer[i]);
-                if ((i + 1) % 8 == 0) {
-                    putchar('\n');
-                }
-            }
-            putchar('\n');
+            memory_dump(BANG);
+
+            // putchar('\n');
+            // puts(DIM "========================================" RESET);
+            // puts(DIM "Memory Dump (!): " RESET);
+            // puts(DIM "========================================" RESET);
+            // size_t i;
+            // for (i = 0; i <= vm.highest_data_pointer; i++) {
+            //     printf("%d ", vm.data->buffer[i]);
+            //     if ((i + 1) % 8 == 0) {
+            //         putchar('\n');
+            //     }
+            // }
+            // putchar('\n');
+            // puts(DIM "========================================" RESET);
+
             vm.instruction_pointer++;
             break;
         }
 
         case (HASH): {
-            memory_dump();
+            memory_dump(HASH);
             vm.instruction_pointer++;
             break;
         }
+
         default: {
             break;
         }
@@ -497,12 +596,15 @@ void execute(void) {
 
 void run(char *source) {
 
-    vm_create();
-
     char *san_src;
     san_src = sanitize_source(san_src, source);
+    if (!strlen(san_src)) {
+        exit(EXIT_SUCCESS);
+    }
 
     validate_parentheses(san_src);
+
+    vm_create();
 
     lexer_init(san_src);
 

@@ -12,92 +12,23 @@
 
 #include "bitter.h"
 
-static void truth_machine(void) {
-    char *source;
-
-    // Memory: 001
-    source = ">><!";
-
-    // WARNING: uncommenting the following line will cause the program to enter
-    // an infinite loop that turn all memory into 1
-
-    // Memory: 1111111111111111111111...
-    // source = "><(!>><)";
-
-    run(source);
-}
-
-static void test0(void) {
-    char *source;
-
-    // 011111
-    source = ">>>>>!";
-    run(source);
-}
-
-static void test1(void) {
-    char *source;
-
-    // Out of bounds error
-    source = "<<<<<!";
-
-    run(source);
-}
-
-static void test2(void) {
-    char *source;
-    source = ">(<)!";
-    run(source);
-}
-
-static void test3(void) {
-    char *source;
-    source = ">><(><)";
-    run(source);
-}
-
-static void test4(void) {
-    char *source;
-    source = "(>><)>><!";
-    run(source);
-}
-
-static void test5(void) {
-    char *source;
-    source = ">><((>><)>><)!";
-    run(source);
-}
-
-static void test6(void) {
-    char *source = "<";
-    run(source);
-}
-
-static void test7(void) {
-    char *source = ">>><>>><>>><>>><>>><!";
-    run(source);
-}
-
-static void test8(void) {
-    char *source = ">>><>>><>>><!";
-    run(source);
-}
-
-static void test9(void) {
-    char *source = "!";
-    run(source);
-}
+#define MAX_BUFFER 1024
 
 static void repl() {
-    char line[DEFAULT_BUFFER];
+    char line[MAX_BUFFER];
     for (;;) {
-        printf("> ");
+        printf(DIM "(Bitter) > " RESET);
 
         if (!fgets(line, sizeof(line), stdin)) {
-            printf("\n");
+            putchar('\n');
             break;
         }
-        run(line);
+
+        if (line[0] == 'q') {
+            exit(EXIT_SUCCESS);
+        } else {
+            run(line);
+        }
     }
 }
 
@@ -111,7 +42,6 @@ static char *read_file(const char *filepath) {
 
     fseek(file, 0L, SEEK_END);
     size_t size = ftell(file);
-    // fseek(file, 0L, SEEK_SET);
     rewind(file);
 
     char *buffer = malloc(1 + size * sizeof(*buffer));
@@ -148,12 +78,13 @@ int main(int argc, char **argv) {
         ERROR("Usage: bitter [path]\n");
         exit(EXIT_FAILURE);
     }
-    // TODO: example uses
 
     /* MEMORY DEBUGGING - DO NOT TOUCH */
+#ifdef F_MEMORY_DEBUG
     f_debug_memory_init(NULL, NULL, NULL);
     f_debug_mem_print(0);
     f_debug_mem_reset();
+#endif
 
     return EXIT_SUCCESS;
 }

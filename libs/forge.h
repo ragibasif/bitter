@@ -1,6 +1,3 @@
-// stolen from: https://github.com/quelsolaar/MergeSource/blob/main/forge.h
-//
-//
 //
 /*Forge is a basic utility library, consisting of pure c functions that are
  * useful in any development. Forge is meant to be included in to all c files

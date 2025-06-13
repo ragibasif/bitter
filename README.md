@@ -1,8 +1,5 @@
 # Bitter Interpreter in C
 
-> [!WARNING]
-> Interpreter not complete yet.
-
 A C implementation of the Bitter esoteric programming language - a minimalist
 `Brainfuck` variant that operates on single-bit memory cells.
 
@@ -29,7 +26,7 @@ Key features:
 | `<`     | Move pointer left by 1 and invert the bit                  |
 | `(`     | If current bit is 1, continue; else jump past matching `)` |
 | `)`     | Jump back to matching `(`                                  |
-| `!`     | (Debug) Dump memory from 0 to current pointer              |
+| `!`     | (Debug) Dump memory from 0 to highest data pointer reached |
 | `#`     | (Debug) Pause execution and dump memory                    |
 
 ## Examples
