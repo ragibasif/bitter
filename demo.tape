@@ -62,15 +62,10 @@ Set FontSize 24
 Set FontFamily "Fira Code"
 Set Theme "GitHub Dark"
 Set Width 1200
-Set Height 1400
+Set Height 800
 Set BorderRadius 10
 Set TypingSpeed 5ms
 
-Type "./bitter" Sleep 500ms Enter Sleep 1s
-Type ">>><>>>><>>><>>>>><>>>><>><>>>>><>><>><>>><>>>>><>"
-Type "><>><>>><>>>>><>><>><>><>><>>><>><>>>>><>>><>>>><>"
-Type ">><>>><>>>><>><>>>>>><>><>><>>>>>>><>><>><>><>>><>"
-Type "><>>><>><>><>>>>><>>><>><>><>>><>><>>><>>><>><>>><"
-Type ">>><>><>>><>>><>><>>>><!" Sleep 500ms Enter Sleep 1s
+Type "./bitter examples/01_truth_machine_0.bitr" Sleep 500ms Enter Sleep 1s
 
 Sleep 5s
