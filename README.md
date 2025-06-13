@@ -5,6 +5,10 @@ A C implementation of the Bitter esoteric programming language - a minimalist
 
 ["Like Brainfuck - only much, much worse." - User:DMC, creator of Bitter](https://esolangs.org/wiki/Bitter)
 
+`Hello, World!\n` in Bitter.
+
+![Hello, World!\n](./assets/hello_world.svg)
+
 ![Bitter REPL Demo 00](./assets/00_demo_hello_world_repl.gif)
 
 ## About Bitter
