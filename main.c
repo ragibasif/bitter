@@ -24,11 +24,18 @@ static void repl() {
             break;
         }
 
-        if (line[0] == 'q') {
-            exit(EXIT_SUCCESS);
-        } else {
-            run(line);
+        if (line[0] == ':') {
+            if (line[1] == 'q') {
+                if (line[2] == 'u') {
+                    if (line[3] == 'i') {
+                        if (line[4] == 't') {
+                            exit(EXIT_SUCCESS);
+                        }
+                    }
+                }
+            }
         }
+        run(line);
     }
 }
 

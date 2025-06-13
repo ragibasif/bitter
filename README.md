@@ -5,6 +5,8 @@ A C implementation of the Bitter esoteric programming language - a minimalist
 
 ["Like Brainfuck - only much, much worse." - User:DMC, creator of Bitter](https://esolangs.org/wiki/Bitter)
 
+![Bitter REPL Demo 00](./assets/00_demo_repl.gif)
+
 ## About Bitter
 
 Bitter is a Turing-complete esoteric programming language created by [User:DMC](https://esolangs.org/wiki/User:DMC)
@@ -29,8 +31,6 @@ Key features:
 | `!`     | (Debug) Dump memory from 0 to highest data pointer reached |
 | `#`     | (Debug) Pause execution and dump memory                    |
 
-## Examples
-
 ## Installation
 
 1. Clone this repository:
@@ -43,8 +43,10 @@ Key features:
 2. Run `make`
 
    ```shell
-   make run
+   make all
    ```
+
+## Examples
 
 ## Acknowledgements
 

@@ -599,7 +599,7 @@ void run(char *source) {
     char *san_src;
     san_src = sanitize_source(san_src, source);
     if (!strlen(san_src)) {
-        exit(EXIT_SUCCESS);
+        return;
     }
 
     validate_parentheses(san_src);
