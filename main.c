@@ -17,7 +17,7 @@
 static void repl() {
     char line[MAX_BUFFER];
     for (;;) {
-        printf(DIM "(Bitter) > " RESET);
+        printf(DIM "(Bitter) $ " RESET);
 
         if (!fgets(line, sizeof(line), stdin)) {
             putchar('\n');
