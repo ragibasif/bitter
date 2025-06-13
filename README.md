@@ -5,7 +5,9 @@ A C implementation of the Bitter esoteric programming language - a minimalist
 
 ["Like Brainfuck - only much, much worse." - User:DMC, creator of Bitter](https://esolangs.org/wiki/Bitter)
 
-`Hello, World!\n` in Bitter.
+## Hello, World
+
+The following Bitter source code outputs "Hello, World!\n" to `stdout`:
 
 ![Hello, World!\n](./assets/hello_world.svg)
 
