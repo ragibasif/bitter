@@ -482,7 +482,7 @@ void memory_dump(enum token_type type) {
 
     printf(DIM CYAN "\n-- Tape (Rendered) --\n" RESET);
     for (i = 0; i < size; i++) {
-        printf("%c", buffer[i]);
+        printf(BOLD "%c" RESET, buffer[i]);
     }
 
     putchar('\n');
@@ -562,21 +562,6 @@ void execute(void) {
 
         case (BANG): {
             memory_dump(BANG);
-
-            // putchar('\n');
-            // puts(DIM "========================================" RESET);
-            // puts(DIM "Memory Dump (!): " RESET);
-            // puts(DIM "========================================" RESET);
-            // size_t i;
-            // for (i = 0; i <= vm.highest_data_pointer; i++) {
-            //     printf("%d ", vm.data->buffer[i]);
-            //     if ((i + 1) % 8 == 0) {
-            //         putchar('\n');
-            //     }
-            // }
-            // putchar('\n');
-            // puts(DIM "========================================" RESET);
-
             vm.instruction_pointer++;
             break;
         }

@@ -55,18 +55,22 @@
 #   Hide                            Hide the subsequent commands from the output
 #   Show                            Show the subsequent commands in the output
 
-Output assets/00_demo_repl.gif
+Output assets/00_repl_demo_hello_world.gif
 
 Set Shell "zsh"
 Set FontSize 14
 Set FontFamily "Fira Code"
 Set Theme "GitHub Dark"
 Set Width 800
-Set Height 600
+Set Height 1000
 Set BorderRadius 10
 
 Type "./bitter" Sleep 500ms Enter Sleep 1s
-Type ">><!" Sleep 500ms Enter Sleep 1s
+Type ">>><>>>><>>><>>>>><>>>><>><>>>>><>><>><>>><>>>>><>" Sleep 500ms
+Type "><>><>>><>>>>><>><>><>><>><>>><>><>>>>><>>><>>>><>" Sleep 500ms
+Type ">><>>><>>>><>><>>>>>><>><>><>>>>>>><>><>><>><>>><>" Sleep 500ms
+Type "><>>><>><>><>>>>><>>><>><>><>>><>><>>><>>><>><>>><" Sleep 500ms
+Type ">>><>><>>><>>><>><>>>><!" Sleep 500ms Enter Sleep 2s
 Type ":quit" Sleep 500ms Enter Sleep 1s
 
 Sleep 5s

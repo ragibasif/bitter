@@ -5,7 +5,7 @@ A C implementation of the Bitter esoteric programming language - a minimalist
 
 ["Like Brainfuck - only much, much worse." - User:DMC, creator of Bitter](https://esolangs.org/wiki/Bitter)
 
-![Bitter REPL Demo 00](./assets/00_demo_repl.gif)
+![Bitter REPL Demo 00](./assets/00_demo_hello_world_repl.gif)
 
 ## About Bitter
 
