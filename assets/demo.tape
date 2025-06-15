@@ -66,11 +66,8 @@ Set Height 1600
 Set BorderRadius 10
 Set TypingSpeed 5ms
 
-Type "./bitter" Sleep 500ms Enter Sleep 1s
-Type ">>><>>>><>>><>>>>><>>>><>><>>>>><>><>><>>><>>>>><>"
-Type "><>><>>><>>>>><>><>><>><>><>>><>><>>>>><>>><>>>><>"
-Type ">><>>><>>>><>><>>>>>><>><>><>>>>>>><>><>><>><>>><>"
-Type "><>>><>><>><>>>>><>>><>><>><>>><>><>>><>>><>><>>><"
-Type ">>><>><>>><>>><>><>>>><!" Sleep 500ms Enter Sleep 1s
+Type "./bitter examples/02_truth_machine_1.bitr" Sleep 500ms Enter Sleep 1s
+Sleep 5s
+Ctrl+C Sleep 1s
 
 Sleep 5s
