@@ -62,13 +62,13 @@ void error_print(const char *file, const unsigned line, const char *function,
 struct vm {
     struct data *data;
     struct lexer *lexer;
-    int data_pointer;
+    int64_t data_pointer;
     int highest_data_pointer;
     int instruction_pointer;
 };
 
 struct data {
-    char *buffer;
+    uint8_t *buffer;
     int size;
     int capacity;
 };

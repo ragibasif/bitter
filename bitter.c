@@ -31,6 +31,7 @@ void error_print(const char *file, const unsigned line, const char *function,
     fprintf(stderr, "%s", BOLD);
     vfprintf(stderr, format, args);
     fprintf(stderr, "%s", RESET);
+    fprintf(stderr, "\n");
     va_end(args);
 }
 
@@ -65,9 +66,7 @@ struct data *data_create(struct data *data) {
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < data->capacity; i++) {
-        data->buffer[i] = 0;
-    }
+    memset(data->buffer, 0, data->capacity * sizeof(*data->buffer));
     return data;
 }
 
@@ -211,8 +210,9 @@ void lexer_init(char *source) {
 static char *sanitize_source(char *dest, char *source) {
     size_t i, j;
     int src_len;
+    char *valid_src;
     src_len = strlen(source);
-    char valid_src[src_len + 1];
+    valid_src = malloc(1 + src_len * sizeof(*valid_src));
     for (i = j = 0; i < src_len; i++) {
         if (source[i] == '>' || source[i] == '<' || source[i] == '(' ||
             source[i] == ')' || source[i] == '!' || source[i] == '#') {
@@ -230,6 +230,8 @@ static char *sanitize_source(char *dest, char *source) {
 
     memcpy(dest, valid_src, src_len);
     dest[src_len] = '\0';
+    free(valid_src);
+    valid_src = NULL;
 
     return dest;
 }
@@ -237,8 +239,10 @@ static char *sanitize_source(char *dest, char *source) {
 static void validate_parentheses(char *source) {
     size_t i, j;
     int src_len;
+    char *buffer;
+    char *parens;
     src_len = strlen(source);
-    char parens[src_len + 1];
+    parens = malloc(1 + src_len * sizeof(*parens));
 
     for (i = j = 0; i < src_len; i++) {
         if (source[i] == '(' || source[i] == ')') {
@@ -247,10 +251,12 @@ static void validate_parentheses(char *source) {
     }
 
     src_len = j;
+
     parens[src_len] = '\0';
 
-    char buffer[src_len + 1];
+    buffer = malloc(1 + src_len * sizeof(*buffer));
     buffer[src_len] = '\0';
+
     for (i = j = 0; i < src_len; i++) {
         if (parens[i] == '(') {
             buffer[j++] = parens[i];
@@ -262,6 +268,12 @@ static void validate_parentheses(char *source) {
             j--;
         }
     }
+
+    free(buffer);
+    buffer = NULL;
+
+    free(parens);
+    parens = NULL;
 }
 
 void tokenize(struct lexer *lexer) {
@@ -303,7 +315,8 @@ void tokenize(struct lexer *lexer) {
 
 static void match_parens(void) {
     size_t i, j;
-    struct token *buffer[vm.lexer->size];
+    struct token **buffer;
+    buffer = malloc(vm.lexer->size * sizeof(*buffer));
 
     for (i = j = 0; i < vm.lexer->size; i++) {
         if (vm.lexer->buffer[i]->type == OPEN_PAREN) {
@@ -315,16 +328,22 @@ static void match_parens(void) {
             }
         }
     }
+
+    free(buffer);
+    buffer = NULL;
 }
 
 static void memory_check() {
     if (vm.data->size == vm.data->capacity) {
         vm.data->capacity *= 2;
-        vm.data = realloc(vm.data, vm.data->capacity * sizeof(*vm.data));
-        if (!vm.data) {
+        vm.data->buffer =
+            realloc(vm.data->buffer, vm.data->capacity * sizeof(*vm.data));
+        if (!vm.data->buffer) {
             ERROR("Memory allocation failed\n");
             exit(EXIT_FAILURE);
         }
+        memset(vm.data->buffer + vm.data->capacity / 2, 0,
+               vm.data->capacity / 2 * sizeof(*vm.data->buffer));
     }
 }
 
@@ -421,7 +440,8 @@ void memory_dump(enum token_type type) {
     }
     size_t i, j;
     size_t size = CEIL_DIV(boundary, 8);
-    int buffer[size];
+    int *buffer;
+    buffer = malloc(size * sizeof(*buffer));
 
     for (i = 0; i < size; i++) {
         buffer[i] = 0;
@@ -488,11 +508,11 @@ void memory_dump(enum token_type type) {
     putchar('\n');
 
     puts(DIM "========================================" RESET);
+    free(buffer);
+    buffer = NULL;
 }
 
 void execute(void) {
-
-    char invert_bit[2] = {[0] = 1, [1] = 0};
 
     vm.highest_data_pointer = vm.data_pointer;
 
@@ -517,7 +537,7 @@ void execute(void) {
             vm.highest_data_pointer =
                 MAX(vm.data_pointer, vm.highest_data_pointer);
             vm.data->buffer[vm.data_pointer] =
-                invert_bit[vm.data->buffer[vm.data_pointer]];
+                !vm.data->buffer[vm.data_pointer];
             vm.instruction_pointer++;
             break;
         }
@@ -530,8 +550,9 @@ void execute(void) {
                 ERROR("Out of bounds error.\n");
                 exit(EXIT_FAILURE);
             }
+
             vm.data->buffer[vm.data_pointer] =
-                invert_bit[vm.data->buffer[vm.data_pointer]];
+                !vm.data->buffer[vm.data_pointer];
             vm.instruction_pointer++;
             break;
         }

@@ -4,17 +4,11 @@ MAGENTA=\033[0;95m
 RESET=\033[0m
 
 CC := clang
-#debug
-# CFLAGS := -std=c99 -Wall -Wextra -Weverything -O1 -g -pedantic -v -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls
-#release
-CFLAGS := -std=c99 -O3
+CFLAGS := -std=c99 -Wall -Wextra -Weverything -Wvla -O1 -g -pedantic -v -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls
 
 DBG = lldb
 
-#debug
-# LDFLAGS := -v -lc
-#release
-LDFLAGS := -lc
+LDFLAGS := -v -lc
 
 EXECUTABLE := bitter
 

@@ -1,7 +1,7 @@
 # Bitter Interpreter in C
 
 A C implementation of the Bitter esoteric programming language - a minimalist
-`Brainfuck` variant that operates on single-bit memory cells.
+`Brainf*ck` variant that operates on single-bit memory cells.
 
 ["Like Brainfuck - only much, much worse." - User:DMC, creator of Bitter](https://esolangs.org/wiki/Bitter)
 
@@ -78,6 +78,13 @@ Run the `./bitter` command with the `<filename>.bitr` as the argument:
 
 ## Examples
 
+```shell
+examples/
+├── 00_hello_world.bitr -> Load memory 0 through 111 with 'Hello, World!\n'
+├── 01_truth_machine_0.bitr -> initialize data[0] = 0 and end on data[1] = 0
+└── 02_truth_machine_1.bitr -> infinite loop: fill memory with 1 and dump memory
+```
+
 Example of evaluating the truth machine from the `REPL`:
 
 ![REPL Truth Machine](./assets/01_repl_demo_tm0.gif)
@@ -85,6 +92,10 @@ Example of evaluating the truth machine from the `REPL`:
 Example of evaluating the truth machine from a source file:
 
 ![Source File Truth Machine](./assets/02_src_file_demo_tm0.gif)
+
+Example of evaluating the infinite loop truth machine from a source file:
+
+![Source File Infinite Loop Truth Machine](./assets/03_src_file_demo_tm1_infinite_loop.gif)
 
 ## Acknowledgements
 
