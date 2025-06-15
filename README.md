@@ -37,6 +37,9 @@ Key features:
 | `!`     | (Debug) Dump memory from 0 to highest data pointer reached |
 | `#`     | (Debug) Pause execution and dump memory                    |
 
+![increment and invert](./assets/inc_invert.svg)
+![decrement and invert](./assets/dec_invert.svg)
+
 ## Installation
 
 1. Clone this repository:

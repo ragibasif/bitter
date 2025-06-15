@@ -53,7 +53,7 @@ struct data *data_create(struct data *data) {
     size_t i;
     data = malloc(sizeof(*data));
     if (!data) {
-        ERROR("Memory allocation failed\n");
+        ERROR("Memory allocation failed");
         exit(EXIT_FAILURE);
     }
 
@@ -62,7 +62,7 @@ struct data *data_create(struct data *data) {
     data->buffer = malloc(data->capacity * sizeof(*data->buffer));
 
     if (!data->buffer) {
-        ERROR("Memory allocation failed\n");
+        ERROR("Memory allocation failed");
         exit(EXIT_FAILURE);
     }
 
@@ -83,7 +83,7 @@ struct lexer *lexer_create(struct lexer *lexer) {
     lexer = malloc(sizeof(*lexer));
 
     if (!lexer) {
-        ERROR("Memory allocation failed\n");
+        ERROR("Memory allocation failed");
         exit(EXIT_FAILURE);
     }
 
@@ -91,14 +91,14 @@ struct lexer *lexer_create(struct lexer *lexer) {
     lexer->source = malloc(1 + DEFAULT_BUFFER * sizeof(*lexer->source));
 
     if (!lexer->source) {
-        ERROR("Memory allocation failed\n");
+        ERROR("Memory allocation failed");
         exit(EXIT_FAILURE);
     }
 
     lexer->buffer = malloc(DEFAULT_BUFFER * sizeof(*lexer->buffer));
 
     if (!lexer->buffer) {
-        ERROR("Memory allocation failed\n");
+        ERROR("Memory allocation failed");
         exit(EXIT_FAILURE);
     }
 
@@ -129,7 +129,7 @@ struct token *token_create(struct token *token, enum token_type type,
     token = malloc(sizeof(*token));
 
     if (!token) {
-        ERROR("Memory allocation failed\n");
+        ERROR("Memory allocation failed");
         exit(EXIT_FAILURE);
     }
     switch (type) {
@@ -191,14 +191,14 @@ void lexer_init(char *source) {
             vm.lexer->source, 1 + vm.lexer->size * sizeof(*vm.lexer->source));
 
         if (!vm.lexer->source) {
-            ERROR("Memory allocation failed\n");
+            ERROR("Memory allocation failed");
             exit(EXIT_FAILURE);
         }
         vm.lexer->buffer = realloc(vm.lexer->buffer,
                                    vm.lexer->size * sizeof(*vm.lexer->buffer));
 
         if (!vm.lexer->buffer) {
-            ERROR("Memory allocation failed\n");
+            ERROR("Memory allocation failed");
             exit(EXIT_FAILURE);
         }
     }
@@ -213,6 +213,11 @@ static char *sanitize_source(char *dest, char *source) {
     char *valid_src;
     src_len = strlen(source);
     valid_src = malloc(1 + src_len * sizeof(*valid_src));
+
+    if (!valid_src) {
+        ERROR("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
     for (i = j = 0; i < src_len; i++) {
         if (source[i] == '>' || source[i] == '<' || source[i] == '(' ||
             source[i] == ')' || source[i] == '!' || source[i] == '#') {
@@ -224,7 +229,7 @@ static char *sanitize_source(char *dest, char *source) {
     dest = malloc(1 + src_len * sizeof(*dest));
 
     if (!dest) {
-        ERROR("Memory allocation failed\n");
+        ERROR("Memory allocation failed");
         exit(EXIT_FAILURE);
     }
 
@@ -244,6 +249,11 @@ static void validate_parentheses(char *source) {
     src_len = strlen(source);
     parens = malloc(1 + src_len * sizeof(*parens));
 
+    if (!parens) {
+        ERROR("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
+
     for (i = j = 0; i < src_len; i++) {
         if (source[i] == '(' || source[i] == ')') {
             parens[j++] = source[i];
@@ -255,6 +265,11 @@ static void validate_parentheses(char *source) {
     parens[src_len] = '\0';
 
     buffer = malloc(1 + src_len * sizeof(*buffer));
+
+    if (!buffer) {
+        ERROR("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
     buffer[src_len] = '\0';
 
     for (i = j = 0; i < src_len; i++) {
@@ -262,7 +277,7 @@ static void validate_parentheses(char *source) {
             buffer[j++] = parens[i];
         } else {
             if (j <= 0) {
-                ERROR("SYNTAX ERROR: Invalid parentheses.\n");
+                ERROR("Invalid parentheses.");
                 exit(EXIT_FAILURE);
             }
             j--;
@@ -318,6 +333,11 @@ static void match_parens(void) {
     struct token **buffer;
     buffer = malloc(vm.lexer->size * sizeof(*buffer));
 
+    if (!buffer) {
+        ERROR("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
+
     for (i = j = 0; i < vm.lexer->size; i++) {
         if (vm.lexer->buffer[i]->type == OPEN_PAREN) {
             buffer[j++] = vm.lexer->buffer[i];
@@ -339,7 +359,7 @@ static void memory_check() {
         vm.data->buffer =
             realloc(vm.data->buffer, vm.data->capacity * sizeof(*vm.data));
         if (!vm.data->buffer) {
-            ERROR("Memory allocation failed\n");
+            ERROR("Memory allocation failed");
             exit(EXIT_FAILURE);
         }
         memset(vm.data->buffer + vm.data->capacity / 2, 0,
@@ -442,6 +462,10 @@ void memory_dump(enum token_type type) {
     size_t size = CEIL_DIV(boundary, 8);
     int *buffer;
     buffer = malloc(size * sizeof(*buffer));
+    if (!buffer) {
+        ERROR("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
 
     for (i = 0; i < size; i++) {
         buffer[i] = 0;
@@ -531,7 +555,7 @@ void execute(void) {
 
             if (!bounds_check()) {
 
-                ERROR("Out of bounds error.\n");
+                ERROR("Out of bounds error.");
                 exit(EXIT_FAILURE);
             }
             vm.highest_data_pointer =
@@ -547,7 +571,7 @@ void execute(void) {
             vm.data_pointer--;
 
             if (!bounds_check()) {
-                ERROR("Out of bounds error.\n");
+                ERROR("Out of bounds error.");
                 exit(EXIT_FAILURE);
             }
 
@@ -564,7 +588,7 @@ void execute(void) {
             vm.instruction_pointer++;
 
             if (!bounds_check()) {
-                // ERROR("Out of bounds error.\n");
+                // ERROR("Out of bounds error.");
                 return;
             }
 
@@ -575,7 +599,7 @@ void execute(void) {
                 vm.lexer->buffer[vm.instruction_pointer]->match_location;
 
             if (!bounds_check()) {
-                // ERROR("Out of bounds error.\n");
+                // ERROR("Out of bounds error.");
                 return;
             }
             break;
