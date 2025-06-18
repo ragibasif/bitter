@@ -1,7 +1,8 @@
 # Bitter Interpreter in C
 
 A C implementation of the Bitter esoteric programming language - a minimalist
-`Brainf*ck` variant that operates on single-bit memory cells.
+`Brainf*ck` variant that operates on single-bit memory cells. Project built for
+**educational and recreational purposes.**
 
 ["Like Brainfuck - only much, much worse." - User:DMC, creator of Bitter](https://esolangs.org/wiki/Bitter)
 
